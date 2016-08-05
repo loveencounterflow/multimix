@@ -1,179 +1,83 @@
 
 
 ############################################################################################################
-TYPES                     = require 'coffeenode-types'
-log                       = console.log
-rpr                       = ( require 'util' ).inspect
+CND                       = require 'cnd'
+rpr                       = CND.rpr
+badge                     = 'MULTIMIX'
+log                       = CND.get_logger 'plain',     badge
+info                      = CND.get_logger 'info',      badge
+whisper                   = CND.get_logger 'whisper',   badge
+alert                     = CND.get_logger 'alert',     badge
+debug                     = CND.get_logger 'debug',     badge
+warn                      = CND.get_logger 'warn',      badge
+help                      = CND.get_logger 'help',      badge
+urge                      = CND.get_logger 'urge',      badge
+echo                      = CND.echo.bind CND
+#...........................................................................................................
+TOOLS                     = require './tools'
 
 
-#===========================================================================================================
-# SHINY MIXING STUFF
 #-----------------------------------------------------------------------------------------------------------
-@compose   = ( pedigree... ) -> return @_compose_or_assemble pedigree, true
-@assemble  = ( pedigree... ) -> return @_compose_or_assemble pedigree, false
+module.exports = MMX = {}
 
 #-----------------------------------------------------------------------------------------------------------
-@_compose_or_assemble = ( ancestors, allow_overrides, names ) ->
-  seen_names  = if allow_overrides then null else {}
+MMX.mix = ( mixins... ) ->
+  # debug arguments.callee is MMX.mix
+  return null unless mixins.length > 0
+  # debug '5021', 'mix.reducers', @mix.reducers
+  reducer_fallback  = @mix.reducers[ '*' ] ? 'assign'
+  exclude           = []
+  ### TAINT support multiple types at all or only PODs? ###
+  R                 = if CND.isa_list mixins[ 0 ] then [] else {}
   #.........................................................................................................
-  class MULTIMIX_NONCE_CLASS
-  R = new MULTIMIX_NONCE_CLASS()
-  #.........................................................................................................
-  for ancestor in ancestors
-    for name of ancestor
+  for mixin in mixins
+    for key, value of mixin
+      continue if key in exclude
+      reducer = @mix.reducers[ key ] ? reducer_fallback
       #.....................................................................................................
-      if not allow_overrides
-        if seen_names[ name ]
-          throw new Error """
-            encountered duplicate name #{rpr name}; use `compose instead of `assemble` to allow for this"""
-        seen_names[ name ] = true
-      #.....................................................................................................
-      descriptor = @get_descriptor ancestor, name
-      continue unless descriptor?
-      #.....................................................................................................
-      if descriptor.get? or descriptor.set?
-        @set_property MULTIMIX_NONCE_CLASS::, name,
-          descriptor.get
-          descriptor.set
-          'configurable': descriptor.configurable
-          'enumerable':   yes
-      #.....................................................................................................
-      else
-        MULTIMIX_NONCE_CLASS::[ name ] = descriptor.value
+      ### TAINT in e.g. mode `append`, should value be skipped if it is `null`? ###
+      switch reducer
+        #...................................................................................................
+        when 'skip'
+          continue
+        #...................................................................................................
+        when 'assign'
+          if value is undefined then delete R[ key ]
+          else                              R[ key ] = value
+        #...................................................................................................
+        when 'append'
+          ### TAINT consider to use `Symbol.isConcatSpreadable` in the future ###
+          target = ( R[ key ] ?= [] )
+          if CND.isa_list then  target.splice target.length, 0, value...
+          else                  target.push                     value
+        #...................................................................................................
+        when 'list'
+          ( R[ key ] ?= [] ).push value
+        #...................................................................................................
+        # when 'add'      then R[ key ]         = ( R[ key ] ? 0 ) + value
+        # when 'tag'      then meld ( target = R[ key ] ?= [] ), value
+        # when 'function' then ( cache[ key ] ?= [] ).push [ entry[ 'id' ], value, ]
+        #...................................................................................................
+        else throw new Error "unknown reducer #{rpr reducer}"
   #.........................................................................................................
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@bundle = ( object ) ->
-  # Given an object which may contain named methods, iterate over all methods and bind each one to
-  # object, thereby making them 'detachable' (i.e. you can then pass around object.method without
-  # having to worry about the value of @ / this inside the method).
-  for name of object
-    descriptor = @get_descriptor object, name
-    continue if @looks_like_a_property_descriptor descriptor
-    #.......................................................................................................
-    if TYPES.isa_function descriptor[ 'value' ]
-      original_method = descriptor[ 'value' ]
-      bound_method    = original_method.bind object
-      object[ name ]  = bound_method
-      #.....................................................................................................
-      for sub_name of original_method
-        bound_method[ sub_name ]  = original_method[ sub_name ]
-  #.........................................................................................................
-  return object
-
-# #-----------------------------------------------------------------------------------------------------------
-# @set = ( x, name, value ) ->
-#   """Experimental; sets a value on a mixin without producing a new instance (as compose would)."""
-#   if x::
-#     delete x[ name ] if x[ name ]?
-#     x::[ name ] = value
-#   else
-#     x[ name ] = value
-#   return null
+use = ( reducers... ) ->
+  ### Returns a version of mix that uses the reducers passed in to `use`; the resulting reducer is
+  derived form the reducers list by applying `mix`. Turtles. ###
+  R               = {}
+  R.mix           = MMX.mix.bind R
+  R.mix.reducers  = MMX.mix MMX.reducers, reducers...
+  R.mix.tools     = MMX.mix.tools
+  return R.mix
 
 #-----------------------------------------------------------------------------------------------------------
-@get = ( object, name, fallback = undefined ) ->
-  #.........................................................................................................
-  try
-    descriptor = @get_descriptor object, name
-  #.........................................................................................................
-  catch error
-    throw error unless error[ 'message' ]?
-    if 0 == error[ 'message' ].indexOf 'unable to retrieve descriptor '
-      return fallback if fallback isnt undefined
-      throw new Error "unable to find #{rpr name} in this object"
-    throw error
-  #.........................................................................................................
-  return object[ name ].bind object if TYPES.isa_function descriptor[ 'value' ]
-  return object[ name ]
-
-
-#===========================================================================================================
-# PROPER PROPERTY APPROPRIATION
-#-----------------------------------------------------------------------------------------------------------
-@set_property = ( target, name, getter, setter, Q ) ->
-  argument_count = arguments.length
-  if argument_count == 3
-    Q       = {}
-    setter  = undefined
-  else if argument_count == 4
-    if TYPES.isa_pod setter
-      Q       = setter
-      setter  = undefined
-    else
-      Q       = {}
-  else if argument_count < 3 or argument_count > 5
-    raise new Error "expected between 3 and 5 arguments, got #{argument_count}"
-  #.........................................................................................................
-  unless getter? or setter? then throw new Error "need at least a getter or a setter, got neither"
-  #.........................................................................................................
-  Q[ 'configurable' ]  ?= yes
-  Q[ 'enumerable'   ]  ?= yes
-  Q[ 'get'          ]   = getter ? undefined
-  Q[ 'set'          ]   = setter ? undefined
-  #.........................................................................................................
-  Object.defineProperty target, name, Q
-  return null
+MMX.mix.use = use.bind MMX
 
 #-----------------------------------------------------------------------------------------------------------
-@get_descriptor = ( x, name ) ->
-  #.........................................................................................................
-  try
-    return @_get_descriptor x, name
-  catch error
-    throw error unless error[ 'message' ]?
-    if error[ 'message' ] == 'Object.getOwnPropertyDescriptor called on non-object'
-      throw new Error "unable to retrieve descriptor #{rpr name} in this object (type #{TYPES.type_of x})"
-    throw error
-  #.........................................................................................................
-  throw new Error "programming error; should never happen"
-
-# #...........................................................................................................
-# @_get_descriptor = ( x, name ) ->
-#   loop
-#     R = Object.getOwnPropertyDescriptor x, name
-#     return R if R?
-#     x = Object.getPrototypeOf x
-
-#...........................................................................................................
-@_get_descriptor = ( x, name ) ->
-  loop
-    try
-      R = Object.getOwnPropertyDescriptor x, name
-    catch error
-      ### patched for compatibility with https://github.com/tvcutsem/harmony-reflect ###
-      if error[ 'message' ] == 'Invalid value used as weak map key'
-        throw new Error 'Object.getOwnPropertyDescriptor called on non-object'
-      throw Error
-    return R if R?
-    x = Object.getPrototypeOf x
+MMX.mix.reducers = { '*': 'assign', }
 
 #-----------------------------------------------------------------------------------------------------------
-@looks_like_a_property_descriptor = ( descriptor ) ->
-  return descriptor.get? or descriptor.set?
-
-#-----------------------------------------------------------------------------------------------------------
-@is_property_name_of = ( x, name ) ->
-  # Given any kind of value x and a name, return whether name is the name of a property (in the
-  # narrow sense) of x (i.e. whether its property descriptor has either get or set defined). This
-  # method will walk up the prototype chain of any value given (which means it works e.g. for objects composed
-  # with the MULTIMIX library) and even accepts such values as null and false (which are 'non-objects'
-  # or 'primitive' values in JavaScript).
-  #.........................................................................................................
-  try
-    return @looks_like_a_property_descriptor @get_descriptor x, name
-  #.........................................................................................................
-  catch error
-    throw error unless error[ 'message' ]?
-    throw error unless ( error[ 'message' ].indexOf 'unable to retrieve descriptor' ) == 0
-  #.........................................................................................................
-  return false
-
-
-############################################################################################################
-module.exports = @compose @
-
-# log @_compose_or_assemble
-# log Object.keys $
+MMX.mix.tools = TOOLS
 
