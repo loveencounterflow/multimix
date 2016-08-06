@@ -18,8 +18,8 @@ JavaScript—both assert
 * both to conserve memory and to organize functionalities;
 * that the only *intentional* relationship between a derivative and its antetype should be 'is-a'
   (to the exclusion of 'has-a', 'uses-a', 'partly-resembles-a' &c);
-* that the only *extensional* relationship between the attributes of a derived object and those of its antetype
-  should be one of all-or-nothing,
+* that the only *extensional* relationship between the attributes of a derived object and those of its
+  antetype should be one of all-or-nothing,
 
 
 
