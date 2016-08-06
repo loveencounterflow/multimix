@@ -16,6 +16,7 @@ echo                      = CND.echo.bind CND
 #...........................................................................................................
 test                      = require 'guy-test'
 #...........................................................................................................
+# MULTIMIX                  = require './main'
 { mix }                   = require './main'
 
 
@@ -50,9 +51,6 @@ t = ( x ) -> JSON.stringify x
   test_tools T, mix
   my_mix = mix.use { primes: 'append' }
   test_tools T, my_mix
-  # debug '©68279', ( key for key of mix )
-  # debug '©68279', ( key for key of my_mix )
-  # debug '©99418', t mix.reducers
   #.........................................................................................................
   a =
     id:           'a'
@@ -61,10 +59,6 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   b = my_mix a, { id: 'b', primes: [ 13, 17, 23, ], }
   #.........................................................................................................
-  info '©09344', mix
-  urge '©45237', my_mix
-  info '©82977', 'a', a
-  urge '©56112', 'b', b
   T.eq a[ 'primes' ], [2,3,5,7]
   T.eq b[ 'primes' ], [2,3,5,7,13,17,23]
   T.eq a.report(), '{"id":"a","primes":[2,3,5,7]}'
@@ -72,7 +66,87 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@[ "options example (1)" ] = ( T ) ->
+  #.........................................................................................................
+  options_base =
+    zoom:       '125%'
+    paths:
+      app:      '~/sample'
+      fonts:    '~/.fonts'
+    fonts:
+      files:
+        'Arial':  'HelveticaNeue.ttf'
+      sizes:
+        unit:   'pt'
+        steps:  [ 8, 10, 11, 12, 14, 16, 18, 24, ]
+  #.........................................................................................................
+  options_user =
+    zoom:       '85%'
+    fonts:
+      files:
+        'ComicSans':  'MSComicSans.ttf'
+  #.........................................................................................................
+  options = mix options_base, options_user
+  #.........................................................................................................
+  T.ok options[ 'paths' ] is options_base[ 'paths' ]
+  T.ok options[ 'fonts' ] is options_user[ 'fonts' ]
+  T.eq options[ 'zoom' ], options_user[ 'zoom' ]
+  #.........................................................................................................
+  return null
 
+#-----------------------------------------------------------------------------------------------------------
+@[ "options example (2)" ] = ( T ) ->
+  #.........................................................................................................
+  options_base =
+    primes:     [ 2, 3, 5, ]
+    zoom:       '125%'
+    paths:
+      app:      '~/sample'
+      fonts:    '~/.fonts'
+    fonts:
+      files:
+        'Arial':  'HelveticaNeue.ttf'
+      sizes:
+        unit:   'pt'
+        steps:  [ 8, 10, 11, 12, 14, 16, 18, 24, ]
+    words:
+      foo:      3
+      bar:      3
+  #.........................................................................................................
+  options_user =
+    primes:     [ 7, 11, 13, ]
+    zoom:       '85%'
+    # paths:
+    #   app:      '~/sample'
+    #   fonts:    '~/.fonts'
+    fonts:
+      files:
+        'ComicSans':  'MSComicSans.ttf'
+    words:
+      supercalifragilistic: 20
+    #   sizes:
+    #     unit:   'pt'
+    #     steps:  [ 8, 10, 11, 12, 14, 16, 18, 24, ]
+  #.........................................................................................................
+  reducers =
+    primes: 'append'
+    words:  'merge'
+    zoom:   ( zoom_percentages ) ->
+      R = 1
+      for percentage in zoom_percentages
+        R *= ( parseFloat percentage ) / 100
+      return "#{( R * 100 ).toFixed 2}%"
+  #.........................................................................................................
+  mix_options = mix.use reducers
+  options     = mix_options options_base, options_user
+  urge '5543', options
+  T.ok options[ 'paths' ] is options_base[ 'paths' ]
+  T.ok options[ 'fonts' ] is options_user[ 'fonts' ]
+  T.eq options[ 'primes' ], [ 2, 3, 5, 7, 11, 13, ]
+  T.eq options[ 'zoom' ], '106.25%'
+  #.........................................................................................................
+  return null
 
 
 ############################################################################################################
@@ -80,8 +154,23 @@ unless module.parent?
   # debug '0980', JSON.stringify ( Object.keys @ ), null, '  '
   include = [
     "demo (1)"
+    "options example (1)"
+    "options example (2)"
     ]
   @_prune()
   @_main()
+
+  # debug Object.keys MULTIMIX
+  # debug Object.keys mix
+  # debug Object.keys mix.tools
+
+  # @[ "options example" ]()
+
+
+
+
+
+
+
 
 
