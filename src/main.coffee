@@ -16,8 +16,9 @@ echo                      = CND.echo.bind CND
 
 
 #-----------------------------------------------------------------------------------------------------------
-MULTIMIX        = {}
-MULTIMIX.TOOLS  = require './tools'
+MULTIMIX          = {}
+MULTIMIX.TOOLS    = require './tools'
+MULTIMIX.REDUCERS = require './reducers'
 
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX.mix = ( me, reducers, mixins ) ->
@@ -28,7 +29,8 @@ MULTIMIX.mix = ( me, reducers, mixins ) ->
   #.........................................................................................................
   return null unless mixins.length > 0
   ### TAINT support multiple types at all or only PODs? ###
-  R                 = if CND.isa_list mixins[ 0 ] then [] else {}
+  R = if CND.isa_list mixins[ 0 ] then [] else {}
+  S = {}
   #.........................................................................................................
   ### TAINT presently the reducers namespace has mixin keys as keys except for the special
   key '*'. This severly restricts the expressiveness of the configuration. Solutions:
@@ -36,34 +38,27 @@ MULTIMIX.mix = ( me, reducers, mixins ) ->
   * use sigils like '~' or syntax like '<type>' for special keys
   * reserve one other special key for all special keys
   ###
-  reducers         ?= {}
-  reducer_fallback  = reducers[ '*' ] ? 'assign'
-  exclude           = []
+  S.reducers          = reducers ? {}
+  S.reducer_fallback  = S.reducers[ '*' ] ? 'assign'
   #.........................................................................................................
-  cache             = {}
-  averages          = {}
-  # reducers          = Object.assign {}, reducers, me[ 'reducers' ] ? {}
-  tag_keys          = ( key for key, value of reducers when value is 'tag' )
-  exclude           = [] # ( key for key in [ 'idx', 'id', 'lo', 'hi', 'size', ] when not ( key of reducers ) )
-  # reducer_fallback  = reducers[ '*' ] ? 'assign'
-  functions         = {}
+  S.cache             = {}
+  S.averages          = {}
+  S.tag_keys          = ( key for key, value of S.reducers when value is 'tag' )
+  S.skip              = [] # ( key for key in [ 'idx', 'id', 'lo', 'hi', 'size', ] when not ( key of S.reducers ) )
+  S.functions         = {}
   #.........................................................................................................
-  for key, reducer of reducers
+  for key, reducer of S.reducers
     if reducer is 'include'
-      reducers[ key ] = reducer_fallback
+      S.reducers[ key ] = S.reducer_fallback
       continue
     if CND.isa_function reducer
-      functions[ key ]  = reducer
-      reducers[ key ]   = 'function'
-  # #.........................................................................................................
-  # unless ( 'tag' in exclude ) or ( 'tag' of reducers )
-  #   tag_keys.push 'tag'
-  #   reducers[ 'tag' ] = 'tag'
+      S.functions[  key ] = reducer
+      S.reducers[   key ] = 'function'
   #.........................................................................................................
   for mixin in mixins
     for key, value of mixin
-      continue if ( key in exclude ) or ( value is undefined and reducer isnt 'assign' )
-      reducer = reducers[ key ] ? reducer_fallback
+      continue if ( key in S.skip ) or ( value is undefined and reducer isnt 'assign' )
+      reducer = S.reducers[ key ] ? S.reducer_fallback
       #.....................................................................................................
       ### TAINT in e.g. mode `append`, should value be skipped if it is `null`? ###
       switch reducer
@@ -76,9 +71,7 @@ MULTIMIX.mix = ( me, reducers, mixins ) ->
           else                              R[ key ] = value
         #...................................................................................................
         when 'merge'
-          throw new Error "expected a POD, got a #{CND.type_of value}" unless CND.isa_pod value
-          target = ( R[ key ] ?= {} )
-          target[ sub_key ] = sub_value for sub_key, sub_value of value
+          me.REDUCERS.merge S, R, key, value
         #...................................................................................................
         when 'append'
           ### TAINT consider to use `Symbol.isConcatSpreadable` in the future ###
@@ -91,22 +84,22 @@ MULTIMIX.mix = ( me, reducers, mixins ) ->
         #...................................................................................................
         when 'add'      then R[ key ] = ( R[ key ] ? 0 ) + value
         when 'tag'      then me.tools.meld ( target = R[ key ] ?= [] ), value
-        when 'function' then ( cache[ key ] ?= [] ).push value
+        when 'function' then ( S.cache[ key ] ?= [] ).push value
         #...................................................................................................
         else throw new Error "unknown reducer #{rpr reducer}"
   #.........................................................................................................
   ### tags ###
   for key, value of R
-    continue unless key in tag_keys
+    continue unless key in S.tag_keys
     R[ key ] = reduce_tag R[ key ]
   #.........................................................................................................
   ### averages ###
-  for key, [ sum, count, ] of averages
+  for key, [ sum, count, ] of S.averages
     R[ key ] = sum / count
   #.........................................................................................................
   ### functions ###
-  for key, values of cache
-    R[ key ] = functions[ key ] values, R
+  for key, values of S.cache
+    R[ key ] = S.functions[ key ] values, R
   #.........................................................................................................
   return R
 
@@ -117,7 +110,8 @@ MULTIMIX.use = ( custom_reducers... ) ->
   custom_reducers.splice 0, 0, { '*': 'assign', }
   reducers        = MULTIMIX.mix MULTIMIX, null, custom_reducers
   R               = ( mixins... ) -> MULTIMIX.mix R, reducers, mixins
-  R.tools         = MULTIMIX.TOOLS
+  R.TOOLS         = MULTIMIX.TOOLS
+  R.REDUCERS      = MULTIMIX.REDUCERS
   R.use           = MULTIMIX.use
   return R
 

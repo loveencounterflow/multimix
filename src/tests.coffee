@@ -44,8 +44,8 @@ t = ( x ) -> JSON.stringify x
 @[ "demo (1)" ] = ( T ) ->
   #.........................................................................................................
   test_tools = ( T, x ) ->
-    return T.fail "object has no property 'tools'" unless x.tools?
-    T.ok x.tools[ key ]? for key in [ 'normalize_tag', 'unique', 'append', 'meld', 'reduce_tag', ]
+    return T.fail "object has no property 'TOOLS'" unless x.TOOLS?
+    T.ok CND.is_subset ( Object.keys x.TOOLS ), [ 'normalize_tag', 'unique', 'append', 'meld', 'reduce_tag', ]
     return null
   #.........................................................................................................
   test_tools T, mix
@@ -141,10 +141,12 @@ t = ( x ) -> JSON.stringify x
   mix_options = mix.use reducers
   options     = mix_options options_base, options_user
   urge '5543', options
-  T.ok options[ 'paths' ] is options_base[ 'paths' ]
-  T.ok options[ 'fonts' ] is options_user[ 'fonts' ]
-  T.eq options[ 'primes' ], [ 2, 3, 5, 7, 11, 13, ]
-  T.eq options[ 'zoom' ], '106.25%'
+  T.ok options[ 'paths'   ] is options_base[ 'paths' ]
+  T.ok options[ 'fonts'   ] is options_user[ 'fonts' ]
+  T.eq options[ 'primes'  ], [ 2, 3, 5, 7, 11, 13, ]
+  T.eq options[ 'zoom'    ], '106.25%'
+  T.eq options[ 'words'   ], { foo: 3, bar: 3, supercalifragilistic: 20 }
+  urge mix.TOOLS
   #.........................................................................................................
   return null
 
