@@ -45,7 +45,7 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   test_tools = ( T, x ) ->
     return T.fail "object has no property 'TOOLS'" unless x.TOOLS?
-    T.ok CND.is_subset ( Object.keys x.TOOLS ), [ 'normalize_tag', 'unique', 'append', 'meld', 'reduce_tag', ]
+    T.ok CND.is_subset [ 'normalize_tag', 'unique', 'append', 'meld', ], ( Object.keys x.TOOLS )
     return null
   #.........................................................................................................
   test_tools T, mix
@@ -115,24 +115,33 @@ t = ( x ) -> JSON.stringify x
       bar:      3
     speed:      100
     weight:     456
+    tags:       [ 'alpha', 'beta', 'gamma', 'delta', ]
+    fruit:      'banana'
   #.........................................................................................................
   options_user =
-    primes:     [ 7, 11, 13, ]
-    zoom:       '85%'
+    primes:           [ 7, 11, 13, ]
+    zoom:             '85%'
+    'only-here':      yes
+    'to-be-skipped':  yes
     fonts:
       files:
         'ComicSans':  'MSComicSans.ttf'
     words:
       supercalifragilistic: 20
-    speed:      50
-    weight:     123
+    speed:            50
+    weight:           123
+    tags:             [ '-alpha', 'beta', 'gamma', 'epsilon', ]
+    fruit:            'pineapple'
   #.........................................................................................................
   reducers =
-    primes: 'append'
-    words:  'merge'
-    speed:  'average'
-    weight: 'add'
-    zoom:   ( zoom_percentages ) ->
+    primes:           'append'
+    words:            'merge'
+    speed:            'average'
+    weight:           'add'
+    'to-be-skipped':  'skip'
+    tags:             'tag'
+    fruit:            'list'
+    zoom:             ( zoom_percentages ) ->
       R = 1
       for percentage in zoom_percentages
         R *= ( parseFloat percentage ) / 100
@@ -140,16 +149,18 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   mix_options = mix.use reducers
   options     = mix_options options_base, options_user
-  urge '5543', options
-  T.ok options[ 'paths'   ] is options_base[ 'paths' ]
-  T.ok options[ 'fonts'   ] is options_user[ 'fonts' ]
-  T.eq options[ 'primes'  ], [ 2, 3, 5, 7, 11, 13, ]
-  T.eq options[ 'zoom'    ], '106.25%'
-  T.eq options[ 'words'   ], { foo: 3, bar: 3, supercalifragilistic: 20 }
-  T.eq options[ 'speed'   ], 75
-  T.eq options[ 'weight'  ], 579
-  help mix.TOOLS
-  help mix.REDUCERS
+  # urge '5543', options
+  T.ok options[ 'paths'         ] is options_base[ 'paths' ]
+  T.ok options[ 'fonts'         ] is options_user[ 'fonts' ]
+  T.eq options[ 'primes'        ], [ 2, 3, 5, 7, 11, 13, ]
+  T.eq options[ 'zoom'          ], '106.25%'
+  T.eq options[ 'words'         ], { foo: 3, bar: 3, supercalifragilistic: 20 }
+  T.eq options[ 'speed'         ], 75
+  T.eq options[ 'weight'        ], 579
+  T.eq options[ 'tags'          ], [ 'delta', 'beta', 'gamma', 'epsilon', ]
+  T.eq options[ 'only-here'     ], yes
+  T.eq options[ 'to-be-skipped' ], undefined
+  T.eq options[ 'fruit'         ], [ 'banana', 'pineapple', ]
   #.........................................................................................................
   return null
 
@@ -157,55 +168,96 @@ t = ( x ) -> JSON.stringify x
 @[ "options example (3)" ] = ( T ) ->
   #.........................................................................................................
   options_base =
-    primes:     [ 2, 3, 5, ]
-    zoom:       '125%'
     paths:
       app:      '~/sample'
       fonts:    '~/.fonts'
     fonts:
       files:
         'Arial':  'HelveticaNeue.ttf'
-      sizes:
-        unit:   'pt'
-        steps:  [ 8, 10, 11, 12, 14, 16, 18, 24, ]
-    words:
-      foo:      3
-      bar:      3
   #.........................................................................................................
   options_user =
-    primes:     [ 7, 11, 13, ]
-    zoom:       '85%'
-    # paths:
-    #   app:      '~/sample'
-    #   fonts:    '~/.fonts'
     fonts:
       files:
         'ComicSans':  'MSComicSans.ttf'
-    words:
-      supercalifragilistic: 20
-    #   sizes:
-    #     unit:   'pt'
-    #     steps:  [ 8, 10, 11, 12, 14, 16, 18, 24, ]
+  #.........................................................................................................
+  outer_reducers = null
+  fonts_reducers =
+    files:            'merge'
+  #.........................................................................................................
+  options_user_copy             = Object.assign {}, options_user
+  options_user_copy[ 'fonts' ]  = ( mix.use fonts_reducers ) options_base[ 'fonts' ], options_user_copy[ 'fonts' ]
+  options                       = ( mix.use outer_reducers ) options_base, options_user_copy
+  # urge '7631', t options
+  # T.eq options[ 'fonts' ], {"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}}}
+  T.eq options, {"paths":{"app":"~/sample","fonts":"~/.fonts"},"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}}}
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "options example with nested reducers" ] = ( T ) ->
+  #.........................................................................................................
+  options_base =
+    paths:
+      app:      '~/sample'
+      fonts:    '~/.fonts'
+    fonts:
+      files:
+        'Arial':  'HelveticaNeue.ttf'
+    foo:
+      bar:
+        baz:      42
+  #.........................................................................................................
+  options_user =
+    fonts:
+      files:
+        'ComicSans':  'MSComicSans.ttf'
+    alpha:
+      beta:
+        gamma:    108
   #.........................................................................................................
   reducers =
-    primes: 'append'
-    words:  'merge'
-    zoom:   ( zoom_percentages ) ->
-      R = 1
-      for percentage in zoom_percentages
-        R *= ( parseFloat percentage ) / 100
-      return "#{( R * 100 ).toFixed 2}%"
+    fonts:
+      files:      'merge'
+    foo:
+      bar:
+        baz:      ( values, S ) -> S.path
+    alpha:
+      beta:
+        gamma:    ( values, S ) -> S.path
   #.........................................................................................................
-  mix_options = mix.use reducers
-  options     = mix_options options_base, options_user
-  urge '5543', options
-  T.ok options[ 'paths'   ] is options_base[ 'paths' ]
-  T.ok options[ 'fonts'   ] is options_user[ 'fonts' ]
-  T.eq options[ 'primes'  ], [ 2, 3, 5, 7, 11, 13, ]
-  T.eq options[ 'zoom'    ], '106.25%'
-  T.eq options[ 'words'   ], { foo: 3, bar: 3, supercalifragilistic: 20 }
-  help mix.TOOLS
-  help mix.REDUCERS
+  options = ( mix.use reducers ) options_base, options_user
+  urge '7631', t options
+  T.eq options, {"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}},"foo":{"bar":{"baz":"foo/bar/baz"}},"alpha":{"beta":{"gamma":"alpha/beta/gamma"}},"paths":{"app":"~/sample","fonts":"~/.fonts"}}
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "unused reducers must not cause entry" ] = ( T ) ->
+  #.........................................................................................................
+  options_base =
+    foo:
+      bar:
+        baz:      42
+  #.........................................................................................................
+  options_user =
+    fonts:
+      files:
+        'ComicSans':  'MSComicSans.ttf'
+  #.........................................................................................................
+  reducers =
+    foo:
+      bar:
+        baz:      ( values, S ) -> S.path
+    alpha:
+      beta:
+        gamma:    ( values, S ) -> S.path
+    delta:        'list'
+    qplah:
+      gagh:       'append'
+  #.........................................................................................................
+  options = ( mix.use reducers ) options_base, options_user
+  urge '7631', t options
+  T.eq options, {"foo":{"bar":{"baz":"foo/bar/baz"}},"fonts":{"files":{"ComicSans":"MSComicSans.ttf"}}}
   #.........................................................................................................
   return null
 
@@ -217,6 +269,9 @@ unless module.parent?
     "demo (1)"
     "options example (1)"
     "options example (2)"
+    "options example (3)"
+    "options example with nested reducers"
+    # "unused reducers must not cause entry"
     ]
   @_prune()
   @_main()

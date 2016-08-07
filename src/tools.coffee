@@ -56,7 +56,7 @@ echo                      = CND.echo.bind CND
   return list
 
 #-----------------------------------------------------------------------------------------------------------
-fuse = ( list ) ->
+@fuse = ( list ) ->
   ### Flatten `list`, then apply `@unique` to it. Does not copy `list` but modifies it ###
   R = []
   @meld R, element for element in list
@@ -66,7 +66,7 @@ fuse = ( list ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 @reduce_tag = ( raw ) ->
-  source  = fuse raw
+  source  = @fuse raw
   R       = []
   exclude = null
   #.........................................................................................................

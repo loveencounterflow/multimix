@@ -15,12 +15,16 @@ urge                      = CND.get_logger 'urge',      badge
 echo                      = CND.echo.bind CND
 #...........................................................................................................
 TOOLS                     = require './tools'
+#...........................................................................................................
+σ_new_state               = Symbol.for 'new_state'
+σ_reject                  = Symbol.for 'reject'
+σ_finalize                = Symbol.for 'finalize'
 
 
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@[ Symbol.for 'new_state' ] = ( reducers ) ->
+@[ σ_new_state ] = ( reducers ) ->
   S                   = {}
   S.reducers          = reducers ? {}
   S.reducer_fallback  = S.reducers[ '*' ] ? 'assign'
@@ -30,6 +34,9 @@ TOOLS                     = require './tools'
   S.tag_keys          = ( key for key, value of S.reducers when value is 'tag' )
   S.skip              = [] # ( key for key in [ 'idx', 'id', 'lo', 'hi', 'size', ] when not ( key of S.reducers ) )
   S.functions         = {}
+  S.path              = null
+  S.root              = null
+  S.current           = null
   #.........................................................................................................
   ### TAINT presently the reducers namespace has mixin keys as keys except for the special
   key '*'. This severly restricts the expressiveness of the configuration. Solutions:
@@ -49,44 +56,43 @@ TOOLS                     = require './tools'
   return S
 
 #-----------------------------------------------------------------------------------------------------------
-@[ Symbol.for 'finalize' ] = ( S, R ) ->
+@[ σ_finalize ] = ( S ) ->
   ### tags ###
-  for key, value of R
+  for key, value of S.current
     continue unless key in S.tag_keys
-    R[ key ] = reduce_tag R[ key ]
+    S.current[ key ] = TOOLS.reduce_tag S.current[ key ]
   #.........................................................................................................
   ### averages ###
   for key, [ sum, count, ] of S.averages
-    R[ key ] = sum / count
+    S.current[ key ] = sum / count
   #.........................................................................................................
   ### functions ###
   for key, values of S.cache
-    R[ key ] = S.functions[ key ] values, R
+    S.current[ key ] = S.functions[ key ] values, S
   #.........................................................................................................
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@[ Symbol.for 'reject' ] = ( S, R, key, value ) ->
-  return ( key in S.skip ) or ( value is undefined and reducer isnt 'assign' )
+@[ σ_reject ] = ( S, key, value ) ->
+  return ( key in S.skip ) or ( value is undefined and S.reducer_name isnt 'assign' )
 
 
 #===========================================================================================================
 # REDUCERS
 #-----------------------------------------------------------------------------------------------------------
+@assign = ( S, R, key, value ) ->
+  if value is undefined then delete R[ key ]
+  else                              R[ key ] = value
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@skip = ( S, R, key, value ) -> null
+
+#-----------------------------------------------------------------------------------------------------------
 @merge = ( S, R, key, value ) ->
   throw new Error "expected a POD, got a #{CND.type_of value}" unless CND.isa_pod value
   target = ( R[ key ] ?= {} )
   target[ sub_key ] = sub_value for sub_key, sub_value of value
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@skip = ( S, R, key, value ) ->
-  return null
-
-#-----------------------------------------------------------------------------------------------------------
-@assign = ( S, R, key, value ) ->
-  if value is undefined then delete R[ key ]
-  else                              R[ key ] = value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
@@ -121,6 +127,7 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @function = ( S, R, key, value ) ->
+  ### Cache current value for later processing by `σ_finalize`: ###
   ( S.cache[ key ] ?= [] ).push value
   return null
 

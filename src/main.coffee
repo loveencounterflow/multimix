@@ -13,6 +13,12 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 echo                      = CND.echo.bind CND
+#...........................................................................................................
+{ join }                  = require 'path'
+#...........................................................................................................
+σ_new_state               = Symbol.for 'new_state'
+σ_reject                  = Symbol.for 'reject'
+σ_finalize                = Symbol.for 'finalize'
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -21,26 +27,43 @@ MULTIMIX.TOOLS    = require './tools'
 MULTIMIX.REDUCERS = require './reducers'
 
 #-----------------------------------------------------------------------------------------------------------
-MULTIMIX.mix = ( me, reducers, mixins ) ->
-  σ_new_state = Symbol.for 'new_state'
-  σ_reject    = Symbol.for 'reject'
-  σ_finalize  = Symbol.for 'finalize'
+MULTIMIX.mix = ( me, reducers, mixins, root = null, selector = [] ) ->
   #.........................................................................................................
   return null unless mixins.length > 0
   ### TAINT support multiple types at all or only PODs? ###
-  R = if CND.isa_list mixins[ 0 ] then [] else {}
-  S = me.REDUCERS[ σ_new_state ] reducers
+  R     = if CND.isa_list mixins[ 0 ] then [] else {}
+  S     = me.REDUCERS[ σ_new_state ] reducers
+  root ?= R
   #.........................................................................................................
+  ### Deal with nested reducers first: ###
+  for rd_key, rd_value of reducers
+    if CND.isa_pod rd_value
+      selector.push rd_key
+      partial_mixins = []
+      for mixin in mixins
+        partial_mixin = mixin[ rd_key ]
+        partial_mixins.push partial_mixin if partial_mixin?
+      R[        rd_key ]  = MULTIMIX.mix me, rd_value, partial_mixins, root, selector
+      reducers[ rd_key ]  = 'skip'
+      selector.pop rd_key
+  #.........................................................................................................
+  ### Process unnested reducers: ###
   for mixin in mixins
-    for key, value of mixin
-      continue if me.REDUCERS[ σ_reject ] S, R, key, value
-      reducer_name = S.reducers[ key ] ? S.reducer_fallback
+    for mx_key, mx_value of mixin
+      S.path    = join selector..., mx_key
+      S.root    = root
+      S.current = R
+      continue if me.REDUCERS[ σ_reject ] S, R, mx_key, mx_value
+      reducer_name = S.reducers[ mx_key ] ? S.reducer_fallback
       unless ( reducer = me.REDUCERS[ reducer_name ] )?
         throw new Error "unknown reducer #{rpr reducer_name}"
-      reducer.call me.REDUCERS, S, R, key, value
+      reducer.call me.REDUCERS, S, R, mx_key, mx_value
   #.........................................................................................................
   me.REDUCERS[ σ_finalize ] S, R
   #.........................................................................................................
+  # S.path    = null
+  # S.root    = null
+  # S.current = null
   return R
 
 #-----------------------------------------------------------------------------------------------------------
