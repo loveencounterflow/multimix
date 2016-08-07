@@ -32,7 +32,7 @@ TOOLS                     = require './tools'
   S.cache             = {}
   S.averages          = {}
   S.tag_keys          = ( key for key, value of S.reducers when value is 'tag' )
-  S.skip              = [] # ( key for key in [ 'idx', 'id', 'lo', 'hi', 'size', ] when not ( key of S.reducers ) )
+  # S.skip              = new Set()
   S.functions         = {}
   S.path              = null
   S.root              = null
@@ -74,7 +74,8 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @[ σ_reject ] = ( S, key, value ) ->
-  return ( key in S.skip ) or ( value is undefined and S.reducer_name isnt 'assign' )
+  # return ( S.skip.has key ) or ( value is undefined and S.reducer_name isnt 'assign' )
+  return value is undefined and S.reducer_name isnt 'assign'
 
 
 #===========================================================================================================
