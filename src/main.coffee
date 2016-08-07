@@ -43,23 +43,24 @@ MULTIMIX.mix = ( me, reducers, mixins, root = null, selector = [] ) ->
       for mixin in mixins
         partial_mixin = mixin[ rd_key ]
         partial_mixins.push partial_mixin if partial_mixin?
-      R[        rd_key ]  = MULTIMIX.mix me, rd_value, partial_mixins, root, selector
+      if partial_mixins.length > 0
+        R[ rd_key ] = MULTIMIX.mix me, rd_value, partial_mixins, root, selector
       reducers[ rd_key ]  = 'skip'
       selector.pop rd_key
   #.........................................................................................................
   ### Process unnested reducers: ###
   for mixin in mixins
     for mx_key, mx_value of mixin
-      S.path    = join selector..., mx_key
-      S.root    = root
-      S.current = R
-      continue if me.REDUCERS[ σ_reject ] S, R, mx_key, mx_value
-      reducer_name = S.reducers[ mx_key ] ? S.reducer_fallback
-      unless ( reducer = me.REDUCERS[ reducer_name ] )?
-        throw new Error "unknown reducer #{rpr reducer_name}"
-      reducer.call me.REDUCERS, S, R, mx_key, mx_value
+      S.path          = join selector..., mx_key
+      S.root          = root
+      S.current       = R
+      S.reducer_name  = S.reducers[ mx_key ] ? S.reducer_fallback
+      continue if me.REDUCERS[ σ_reject ] S, mx_key, mx_value
+      unless ( reducer = me.REDUCERS[ S.reducer_name ] )?
+        throw new Error "unknown reducer #{rpr S.reducer_name}"
+      reducer.call me.REDUCERS, S, mx_key, mx_value
   #.........................................................................................................
-  me.REDUCERS[ σ_finalize ] S, R
+  me.REDUCERS[ σ_finalize ] S
   #.........................................................................................................
   # S.path    = null
   # S.root    = null

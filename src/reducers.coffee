@@ -80,53 +80,53 @@ TOOLS                     = require './tools'
 #===========================================================================================================
 # REDUCERS
 #-----------------------------------------------------------------------------------------------------------
-@assign = ( S, R, key, value ) ->
-  if value is undefined then delete R[ key ]
-  else                              R[ key ] = value
+@assign = ( S, key, value ) ->
+  if value is undefined then delete S.current[ key ]
+  else                              S.current[ key ] = value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@skip = ( S, R, key, value ) -> null
+@skip = ( S, key, value ) -> null
 
 #-----------------------------------------------------------------------------------------------------------
-@merge = ( S, R, key, value ) ->
+@merge = ( S, key, value ) ->
   throw new Error "expected a POD, got a #{CND.type_of value}" unless CND.isa_pod value
-  target = ( R[ key ] ?= {} )
+  target = ( S.current[ key ] ?= {} )
   target[ sub_key ] = sub_value for sub_key, sub_value of value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@append = ( S, R, key, value ) ->
+@append = ( S, key, value ) ->
   ### TAINT consider to use `Symbol.isConcatSpreadable` in the future ###
-  target = ( R[ key ] ?= [] )
+  target = ( S.current[ key ] ?= [] )
   if CND.isa_list then  target.splice target.length, 0, value...
   else                  target.push                     value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@list = ( S, R, key, value ) ->
-  ( R[ key ] ?= [] ).push value
+@list = ( S, key, value ) ->
+  ( S.current[ key ] ?= [] ).push value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@add = ( S, R, key, value ) ->
-  R[ key ] = ( R[ key ] ? 0 ) + value
+@add = ( S, key, value ) ->
+  S.current[ key ] = ( S.current[ key ] ? 0 ) + value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@average = ( S, R, key, value ) ->
+@average = ( S, key, value ) ->
   target      = S.averages[ key ] ?= [ 0, 0, ]
   target[ 0 ] = target[ 0 ] + value
   target[ 1 ] = target[ 1 ] + 1
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@tag = ( S, R, key, value ) ->
-  TOOLS.meld ( target = R[ key ] ?= [] ), value
+@tag = ( S, key, value ) ->
+  TOOLS.meld ( target = S.current[ key ] ?= [] ), value
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@function = ( S, R, key, value ) ->
+@function = ( S, key, value ) ->
   ### Cache current value for later processing by `σ_finalize`: ###
   ( S.cache[ key ] ?= [] ).push value
   return null

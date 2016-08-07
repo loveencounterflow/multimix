@@ -271,7 +271,7 @@ unless module.parent?
     "options example (2)"
     "options example (3)"
     "options example with nested reducers"
-    # "unused reducers must not cause entry"
+    "unused reducers must not cause entry"
     ]
   @_prune()
   @_main()
