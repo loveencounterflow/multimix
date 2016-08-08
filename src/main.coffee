@@ -68,6 +68,13 @@ MULTIMIX.mix = ( me, reducers, mixins, root = null, selector = [] ) ->
   return R
 
 #-----------------------------------------------------------------------------------------------------------
+MULTIMIX.copy = ( me, reducers, x, root = null, selector = [] ) ->
+  ### TAINT code duplication ###
+  ### TAINT support multiple types at all or only PODs? ###
+  seed = if CND.isa_list x then [] else {}
+  return MULTIMIX.mix me, reducers, [ seed, x, ], root, selector
+
+#-----------------------------------------------------------------------------------------------------------
 MULTIMIX.use = ( custom_reducers... ) ->
   ### Returns a version of mix that uses the reducers passed in to `use`; the resulting reducer is
   derived form the reducers list by applying `mix`. Turtles. ###
@@ -77,6 +84,7 @@ MULTIMIX.use = ( custom_reducers... ) ->
   R.TOOLS         = MULTIMIX.TOOLS
   R.REDUCERS      = MULTIMIX.REDUCERS
   R.use           = MULTIMIX.use
+  R.copy          = ( x ) -> MULTIMIX.copy R, reducers, x
   return R
 
 #-----------------------------------------------------------------------------------------------------------

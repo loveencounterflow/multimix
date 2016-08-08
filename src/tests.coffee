@@ -226,7 +226,7 @@ t = ( x ) -> JSON.stringify x
         gamma:    ( values, S ) -> S.path
   #.........................................................................................................
   options = ( mix.use reducers ) options_base, options_user
-  urge '7631', t options
+  # urge '7631', t options
   T.eq options, {"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}},"foo":{"bar":{"baz":"foo/bar/baz"}},"alpha":{"beta":{"gamma":"alpha/beta/gamma"}},"paths":{"app":"~/sample","fonts":"~/.fonts"}}
   #.........................................................................................................
   return null
@@ -256,8 +256,30 @@ t = ( x ) -> JSON.stringify x
       gagh:       'append'
   #.........................................................................................................
   options = ( mix.use reducers ) options_base, options_user
-  urge '7631', t options
+  # urge '7631', t options
   T.eq options, {"foo":{"bar":{"baz":"foo/bar/baz"}},"fonts":{"files":{"ComicSans":"MSComicSans.ttf"}}}
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "`mix.copy` gives shallow copy of an object" ] = ( T ) ->
+  #.........................................................................................................
+  options_original =
+    paths:
+      app:      '~/sample'
+      fonts:    '~/.fonts'
+    fonts:
+      files:
+        'Arial':  'HelveticaNeue.ttf'
+    foo:
+      bar:
+        baz:      42
+  #.........................................................................................................
+  options_copy = mix.copy options_original
+  urge '7631', t options_original
+  urge '7631', t options_copy
+  T.eq options_original, options_copy
+  T.ok options_original[ 'paths' ] is options_copy[ 'paths' ]
   #.........................................................................................................
   return null
 
@@ -272,9 +294,10 @@ unless module.parent?
     "options example (3)"
     "options example with nested reducers"
     "unused reducers must not cause entry"
+    "`mix.copy` gives shallow copy of an object"
     ]
-  @_prune()
-  @_main()
+  # @_prune()
+  # @_main()
 
   # debug Object.keys MULTIMIX
   # debug Object.keys mix
@@ -283,10 +306,19 @@ unless module.parent?
   # @[ "options example" ]()
 
 
+  unicopy = require 'universal-copy'
+  # d = new Set 'abcdef'
+  # d.x = 42
+  # urge d
+  # info unicopy d
 
+  a = [ 4, 5, 6, ]
+  d = [ 1, 2, 3, a, ]
+  a.push d
+  d[ 'x' ] = 42
+  urge d
+  info unicopy d
 
-
-
-
+  urge mix d
 
 
