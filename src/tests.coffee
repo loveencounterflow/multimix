@@ -296,8 +296,8 @@ unless module.parent?
     "unused reducers must not cause entry"
     "`mix.copy` gives shallow copy of an object"
     ]
-  # @_prune()
-  # @_main()
+  @_prune()
+  @_main()
 
   # debug Object.keys MULTIMIX
   # debug Object.keys mix
@@ -306,19 +306,19 @@ unless module.parent?
   # @[ "options example" ]()
 
 
-  unicopy = require 'universal-copy'
-  # d = new Set 'abcdef'
-  # d.x = 42
+  # unicopy = require 'universal-copy'
+  # # d = new Set 'abcdef'
+  # # d.x = 42
+  # # urge d
+  # # info unicopy d
+
+  # a = [ 4, 5, 6, ]
+  # d = [ 1, 2, 3, a, ]
+  # a.push d
+  # d[ 'x' ] = 42
   # urge d
   # info unicopy d
 
-  a = [ 4, 5, 6, ]
-  d = [ 1, 2, 3, a, ]
-  a.push d
-  d[ 'x' ] = 42
-  urge d
-  info unicopy d
-
-  urge mix d
+  # urge mix d
 
 
