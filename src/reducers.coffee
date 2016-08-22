@@ -68,7 +68,9 @@ TOOLS                     = require './tools'
   #.........................................................................................................
   ### functions ###
   for key, values of S.cache
-    S.current[ key ] = S.functions[ key ] values, S
+    unless CND.isa_function ( method = S.functions[ key ] )
+      throw new Error "not a function for key #{rpr key}: #{rpr method}"
+    S.current[ key ] = method values, S
   #.........................................................................................................
   return null
 

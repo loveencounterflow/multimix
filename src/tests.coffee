@@ -261,8 +261,36 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   return null
 
+# #-----------------------------------------------------------------------------------------------------------
+# @[ "`mix.copy` gives shallow copy of an object" ] = ( T ) ->
+#   #.........................................................................................................
+#   options_original =
+#     paths:
+#       app:      '~/sample'
+#       fonts:    '~/.fonts'
+#     fonts:
+#       files:
+#         'Arial':  'HelveticaNeue.ttf'
+#     foo:
+#       bar:
+#         baz:      42
+#   #.........................................................................................................
+#   options_copy = mix.copy options_original
+#   urge '7631-0', t options_original
+#   urge '7631-1', t options_copy
+#   urge '7631-2', t mix.copy [ 1, 2, 3, ]
+#   urge '7631-3', t mix [ 1, 2, 3, ]
+#   T.eq options_original, options_copy
+#   T.ok options_original[ 'paths' ] is options_copy[ 'paths' ]
+#   #.........................................................................................................
+#   my_mix = mix.use { foo: ( -> 42 ), }
+#   urge '7631-4', my_mix       options_original
+#   urge '7631-5', my_mix.copy  options_original
+#   #.........................................................................................................
+#   return null
+
 #-----------------------------------------------------------------------------------------------------------
-@[ "`mix.copy` gives shallow copy of an object" ] = ( T ) ->
+@[ "`mix` leaves functions as-is" ] = ( T ) ->
   #.........................................................................................................
   options_original =
     paths:
@@ -271,15 +299,17 @@ t = ( x ) -> JSON.stringify x
     fonts:
       files:
         'Arial':  'HelveticaNeue.ttf'
-    foo:
-      bar:
-        baz:      42
+    frobulate:
+      plain:    ( x ) -> "*#{rpr x}*"
   #.........................................................................................................
-  options_copy = mix.copy options_original
-  urge '7631', t options_original
-  urge '7631', t options_copy
+  options_copy = mix options_original
+  urge '7631-0', options_original
+  urge '7631-1', options_copy
   T.eq options_original, options_copy
   T.ok options_original[ 'paths' ] is options_copy[ 'paths' ]
+  T.ok options_original[ 'frobulate' ][ 'plain' ] is options_copy[ 'frobulate' ][ 'plain' ]
+  #.........................................................................................................
+  my_mix = mix.use { foo: ( -> 42 ), }
   #.........................................................................................................
   return null
 
@@ -288,13 +318,14 @@ t = ( x ) -> JSON.stringify x
 unless module.parent?
   # debug '0980', JSON.stringify ( Object.keys @ ), null, '  '
   include = [
+    # "`mix.copy` gives shallow copy of an object"
     "demo (1)"
     "options example (1)"
     "options example (2)"
     "options example (3)"
     "options example with nested reducers"
     "unused reducers must not cause entry"
-    "`mix.copy` gives shallow copy of an object"
+    "`mix` leaves functions as-is"
     ]
   @_prune()
   @_main()
