@@ -75,6 +75,23 @@ MULTIMIX.mix = ( me, reducers, mixins, root = null, selector = [] ) ->
 #   return MULTIMIX.mix me, reducers, [ seed, x, ], root, selector
 
 #-----------------------------------------------------------------------------------------------------------
+MULTIMIX._copy_object = ( x, seen ) ->
+  ### shamelessly copied from https://github.com/nrn/universal-copy ###
+  R = Object.create Object.getPrototypeOf x
+  seen.set x, R
+  if      Object.isFrozen     x then Object.freeze            R
+  if      Object.isSealed     x then Object.seal              R
+  unless  Object.isExtensible x then Object.preventExtensions R
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
+MULTIMIX._copy_constructor = ( x, seen ) ->
+  ### shamelessly copied from https://github.com/nrn/universal-copy ###
+  R = new x.constructor x
+  seen.set x, R
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
 MULTIMIX.use = ( custom_reducers... ) ->
   ### Returns a version of `mix` that uses the reducers passed in to `use`; the resulting reducer is
   derived from the reducers list by applying `mix`. Turtles. ###

@@ -37,6 +37,39 @@ t = ( x ) -> JSON.stringify x
 @_main = ->
   test @, 'timeout': 3000
 
+#-----------------------------------------------------------------------------------------------------------
+samples_and_types = [
+  [ ( new Map()                ), 'map'         ]
+  [ ( new Set()                ), 'set'         ]
+  [ ( new Date()               ), 'date'        ]
+  [ ( new Error()              ), 'error'       ]
+  [ ( []                       ), 'list'        ]
+  [ ( true                     ), 'boolean'     ]
+  [ ( false                    ), 'boolean'     ]
+  [ ( ( -> )                   ), 'function'    ]
+  [ ( null                     ), 'null'        ]
+  [ ( 'helo'                   ), 'text'        ]
+  [ ( undefined                ), 'undefined'   ]
+  [ ( /^xxx$/g                 ), 'regex'       ]
+  [ ( {}                       ), 'pod'         ]
+  [ ( NaN                      ), 'nan'         ]
+  [ ( 1 / 0                    ), 'infinity'    ]
+  [ ( -1 / 0                   ), 'infinity'    ]
+  [ ( 12345                    ), 'number'      ]
+  [ ( new Buffer 'helo'        ), 'buffer'      ]
+  [ ( new ArrayBuffer 42       ), 'arraybuffer' ]
+  [ ( Symbol.for 'xxx'         ), 'symbol'      ]
+  [ ( Symbol 'yyy'             ), 'symbol'      ]
+  ]
+  #.........................................................................................................
+###
+These do not work at the time being:
+  [ ( new WeakMap()            ), 'weakmap'     ]
+  [ ( ( -> yield 123 )()       ), 'generator'   ]
+  [ ( arguments                ), 'arguments'   ]
+  [ ( global                   ), 'global'      ]
+###
+
 
 #===========================================================================================================
 # TESTS
@@ -261,34 +294,6 @@ t = ( x ) -> JSON.stringify x
   #.........................................................................................................
   return null
 
-# #-----------------------------------------------------------------------------------------------------------
-# @[ "`mix.copy` gives shallow copy of an object" ] = ( T ) ->
-#   #.........................................................................................................
-#   options_original =
-#     paths:
-#       app:      '~/sample'
-#       fonts:    '~/.fonts'
-#     fonts:
-#       files:
-#         'Arial':  'HelveticaNeue.ttf'
-#     foo:
-#       bar:
-#         baz:      42
-#   #.........................................................................................................
-#   options_copy = mix.copy options_original
-#   urge '7631-0', t options_original
-#   urge '7631-1', t options_copy
-#   urge '7631-2', t mix.copy [ 1, 2, 3, ]
-#   urge '7631-3', t mix [ 1, 2, 3, ]
-#   T.eq options_original, options_copy
-#   T.ok options_original[ 'paths' ] is options_copy[ 'paths' ]
-#   #.........................................................................................................
-#   my_mix = mix.use { foo: ( -> 42 ), }
-#   urge '7631-4', my_mix       options_original
-#   urge '7631-5', my_mix.copy  options_original
-#   #.........................................................................................................
-#   return null
-
 #-----------------------------------------------------------------------------------------------------------
 @[ "`mix` leaves functions as-is" ] = ( T ) ->
   #.........................................................................................................
@@ -306,10 +311,66 @@ t = ( x ) -> JSON.stringify x
   urge '7631-0', options_original
   urge '7631-1', options_copy
   T.eq options_original, options_copy
-  T.ok options_original[ 'paths' ] is options_copy[ 'paths' ]
+  T.ok options_original[ 'paths' ] isnt options_copy[ 'paths' ]
   T.ok options_original[ 'frobulate' ][ 'plain' ] is options_copy[ 'frobulate' ][ 'plain' ]
   #.........................................................................................................
   my_mix = mix.use { foo: ( -> 42 ), }
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "`mix.deep_copy` invariances and identities" ] = ( T ) ->
+  σ_common        = Symbol.for 'common'
+  Σ_private       = Symbol.for 'multimix'
+  my_list         = Array.from '357'
+  my_list[ 'a' ]  = [ 'Aha!', ]
+  #.........................................................................................................
+  library_module = ->
+    @x = [ 108, [ 42, ], ]
+    @y = my_list
+    @f = -> @x
+    @[ σ_common   ] = { foo: 'bar', }
+    @[ Σ_private  ] = [ 'a', 'b', 'c', ]
+  #.........................................................................................................
+  library_module.apply L1 = {}
+  L2 = mix.deep_copy L1
+  #.........................................................................................................
+  debug '1', L1, L1[ σ_common ]
+  # L2 = mix mix.deep_copy L1
+  L2 = mix.deep_copy L1
+  debug '2', L2, L2[ σ_common ]
+  T.ok CND.equals L1,     L2
+  T.ok            L1 isnt L2
+  T.ok CND.equals L1[ σ_common  ],      L2[ σ_common  ]
+  T.ok            L1[ σ_common  ] isnt  L2[ σ_common  ]
+  T.ok CND.equals L1[ Σ_private ],      L2[ Σ_private ]
+  T.ok            L1[ Σ_private ] isnt  L2[ Σ_private ]
+  T.ok CND.equals L1.x,                 L2.x
+  T.ok            L1.x            isnt  L2.x
+  T.ok CND.equals L1.y,                 L2.y
+  T.ok            L1.y            isnt  L2.y
+  #.........................................................................................................
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "test copying samples" ] = ( T ) ->
+  #.........................................................................................................
+  for [ value, type, ] in samples_and_types
+    try
+      Object.keys value
+      has_keys = CND.truth true
+    catch
+      has_keys = CND.truth false
+    debug type, ( CND.blue CND.type_of value ), ( CND.yellow CND.type_of mix.deep_copy value ), has_keys
+    T.eq ( CND.type_of value ), ( CND.type_of mix.deep_copy value )
+  #.........................................................................................................
+  d_1   = /f/g
+  d_1.x = [ 'foo', ]
+  d_2   = mix.deep_copy d_1
+  T.eq d_1,         d_2
+  T.ok d_1    isnt  d_2
+  T.eq d_1.x,       d_2.x
+  T.ok d_1.x  isnt  d_2.x
   #.........................................................................................................
   return null
 
@@ -318,14 +379,15 @@ t = ( x ) -> JSON.stringify x
 unless module.parent?
   # debug '0980', JSON.stringify ( Object.keys @ ), null, '  '
   include = [
-    # "`mix.copy` gives shallow copy of an object"
-    "demo (1)"
-    "options example (1)"
-    "options example (2)"
-    "options example (3)"
-    "options example with nested reducers"
-    "unused reducers must not cause entry"
-    "`mix` leaves functions as-is"
+    # "demo (1)"
+    # "options example (1)"
+    # "options example (2)"
+    # "options example (3)"
+    # "options example with nested reducers"
+    # "unused reducers must not cause entry"
+    # "`mix` leaves functions as-is"
+    "`mix.deep_copy` invariances and identities"
+    "test copying samples"
     ]
   @_prune()
   @_main()
@@ -333,23 +395,3 @@ unless module.parent?
   # debug Object.keys MULTIMIX
   # debug Object.keys mix
   # debug Object.keys mix.tools
-
-  # @[ "options example" ]()
-
-
-  # unicopy = require 'universal-copy'
-  # # d = new Set 'abcdef'
-  # # d.x = 42
-  # # urge d
-  # # info unicopy d
-
-  # a = [ 4, 5, 6, ]
-  # d = [ 1, 2, 3, a, ]
-  # a.push d
-  # d[ 'x' ] = 42
-  # urge d
-  # info unicopy d
-
-  # urge mix d
-
-
