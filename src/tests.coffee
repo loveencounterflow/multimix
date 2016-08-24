@@ -38,36 +38,37 @@ t = ( x ) -> JSON.stringify x
   test @, 'timeout': 3000
 
 #-----------------------------------------------------------------------------------------------------------
+# type            value                       equal value                 non-equal value
 samples_and_types = [
-  [ ( new Map()                ), 'map'         ]
-  [ ( new Set()                ), 'set'         ]
-  [ ( new Date()               ), 'date'        ]
-  [ ( new Error()              ), 'error'       ]
-  [ ( []                       ), 'list'        ]
-  [ ( true                     ), 'boolean'     ]
-  [ ( false                    ), 'boolean'     ]
-  [ ( ( -> )                   ), 'function'    ]
-  [ ( null                     ), 'null'        ]
-  [ ( 'helo'                   ), 'text'        ]
-  [ ( undefined                ), 'undefined'   ]
-  [ ( /^xxx$/g                 ), 'regex'       ]
-  [ ( {}                       ), 'pod'         ]
-  [ ( NaN                      ), 'nan'         ]
-  [ ( 1 / 0                    ), 'infinity'    ]
-  [ ( -1 / 0                   ), 'infinity'    ]
-  [ ( 12345                    ), 'number'      ]
-  [ ( new Buffer 'helo'        ), 'buffer'      ]
-  [ ( new ArrayBuffer 42       ), 'arraybuffer' ]
-  [ ( Symbol.for 'xxx'         ), 'symbol'      ]
-  [ ( Symbol 'yyy'             ), 'symbol'      ]
+  map:         [ ( new Map()              ), ( new Map()              ), ( new Map [ [ 'foo', 42, ], ]  ), ]
+  set:         [ ( new Set()              ), ( new Set()              ), ( new Set Array.from 'abcd'    ), ]
+  date:        [ ( new Date()             ), ( new Date()             ), ( new Date '1972-01-01'        ), ]
+  error:       [ ( new Error()            ), ( new Error()            ), ( new Error 'what!'            ), ]
+  list:        [ ( [ 97, 98, 99, ]        ), ( [ 97, 98, 99, ]        ), ( [ 97, 98, 100, ]             ), ]
+  boolean:     [ ( true                   ), ( true                   ), ( false                        ), ]
+  boolean:     [ ( false                  ), ( false                  ), ( true                         ), ]
+  function:    [ ( ( -> )                 ), ( ( -> )                 ), ( ( -> )                       ), ]
+  null:        [ ( null                   ), ( null                   ), ( undefined                    ), ]
+  text:        [ ( 'helo'                 ), ( 'helo'                 ), ( 'helo!!'                     ), ]
+  undefined:   [ ( undefined              ), ( undefined              ), ( null                         ), ]
+  regex:       [ ( /^xxx$/g               ), ( /^xxx$/g               ), ( /^xxx$/                      ), ]
+  pod:         [ ( {}                     ), ( {}                     ), ( { x: 42, }                   ), ]
+  nan:         [ ( NaN                    ), ( NaN                    ), ( NaN                          ), ]
+  infinity:    [ ( 1 / 0                  ), ( 1 / 0                  ), ( -Infinity                    ), ]
+  infinity:    [ ( -1 / 0                 ), ( -1 / 0                 ), ( +Infinity                    ), ]
+  number:      [ ( 12345                  ), ( 12345                  ), ( 12345.3                      ), ]
+  buffer:      [ ( new Buffer 'helo'      ), ( new Buffer 'helo'      ), ( new Buffer 'helo!!'          ), ]
+  arraybuffer: [ ( new ArrayBuffer 42     ), ( new ArrayBuffer 42     ), ( new ArrayBuffer 43           ), ]
+  symbol:      [ ( Symbol.for 'xxx'       ), ( Symbol.for 'xxx'       ), ( Symbol.for 'XXX'             ), ]
+  symbol:      [ ( Symbol 'yyy'           ), ( Symbol 'yyy'           ), ( Symbol 'yyy'                 ), ]
   ]
   #.........................................................................................................
 ###
 These do not work at the time being:
-  [ ( new WeakMap()            ), 'weakmap'     ]
-  [ ( ( -> yield 123 )()       ), 'generator'   ]
-  [ ( arguments                ), 'arguments'   ]
-  [ ( global                   ), 'global'      ]
+  weakmap:     [ ( new WeakMap()          ), ( new WeakMap()          ), ( new WeakMap()          ), ]
+  generator:   [ ( ( -> yield 123 )()     ), ( ( -> yield 123 )()     ), ( ( -> yield 123 )()     ), ]
+  arguments:   [ ( arguments              ), ( arguments              ), ( arguments              ), ]
+  global:      [ ( global                 ), ( global                 ), ( global                 ), ]
 ###
 
 

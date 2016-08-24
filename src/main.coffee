@@ -67,13 +67,6 @@ MULTIMIX.mix = ( me, reducers, mixins, root = null, selector = [] ) ->
   # S.current = null
   return R
 
-# #-----------------------------------------------------------------------------------------------------------
-# MULTIMIX.copy = ( me, reducers, x, root = null, selector = [] ) ->
-#   ### TAINT code duplication ###
-#   ### TAINT support multiple types at all or only PODs? ###
-#   seed = if CND.isa_list x then [] else {}
-#   return MULTIMIX.mix me, reducers, [ seed, x, ], root, selector
-
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX._copy_object = ( x, seen ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
