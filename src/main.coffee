@@ -22,6 +22,9 @@ echo                      = CND.echo.bind CND
 σ_unknown_type            = Symbol.for 'unknown_type'
 
 
+warn "introduce json, xjson methods for faster copying of known-to-be-ok values"
+warn "reducer keys: '*' (main), '*/*' (any attributes), '**' (main and attributes)?"
+
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX          = {}
 MULTIMIX.TOOLS    = require './tools'
