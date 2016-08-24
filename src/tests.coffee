@@ -384,10 +384,13 @@ These do not work at the time being:
 #-----------------------------------------------------------------------------------------------------------
 @[ "copying primitive values" ] = ( T ) ->
   T.eq mix(), null
-  T.eq ( mix null ), null
-  T.eq ( mix undefined ), undefined
-  T.eq ( mix undefined, null ), null
-  T.eq ( mix 'a', 'b', 'c' ), 'c'
+  T.eq ( mix null               ), null
+  T.eq ( mix undefined          ), undefined
+  T.eq ( mix undefined, null    ), null
+  # T.eq ( mix 'a', 'b', 'c'      ), 'c'
+  # T.eq ( mix 22                 ), 22
+  # T.eq ( mix true               ), true
+  # T.eq ( mix -Infinity          ), -Infinity
   #.........................................................................................................
   return null
 

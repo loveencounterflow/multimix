@@ -31,19 +31,17 @@ MULTIMIX.COPIERS  = require './copiers'
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   #.........................................................................................................
-  debug '23764', mixins
   return null if mixins.length is 0
   [ seed
-    mixins... ]   = mixins
-  type            = CND.type_of seed
-  description     = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
-  debug '83429', description
+    tail_mixins... ]  = mixins
+  type                = CND.type_of seed
+  description         = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
   { attributes
-    copy        } = description
-  seen            = new Map()
-  R               = copy.call L, seed, seen
+    copy            } = description
+  seen                = new Map()
+  R                   = copy.call L, seed, seen
   #.........................................................................................................
-  return R unless attributes
+  return R if ( not attributes ) and ( tail_mixins.length is 0 )
   throw 'not implemented'
   #.........................................................................................................
   S               = L.REDUCERS[ σ_new_state ] reducers, seen
@@ -151,7 +149,10 @@ MULTIMIX.use = ( custom_reducers... ) ->
   ### Returns a version of `mix` that uses the reducers passed in to `use`; the resulting reducer is
   derived from the reducers list by applying `mix`. Turtles. ###
   custom_reducers.splice 0, 0, { '*': 'assign', }
+  ### for the time being
   reducers            = MULTIMIX.mix MULTIMIX, custom_reducers, null
+  ###
+  reducers = custom_reducers
   R                   = ( mixins... ) -> MULTIMIX.mix R, mixins, reducers
   R.TOOLS             = MULTIMIX.TOOLS
   R.REDUCERS          = MULTIMIX.REDUCERS
