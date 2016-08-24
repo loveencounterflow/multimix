@@ -38,37 +38,36 @@ t = ( x ) -> JSON.stringify x
   test @, 'timeout': 3000
 
 #-----------------------------------------------------------------------------------------------------------
-# type            value                       equal value                 non-equal value
-samples_and_types = [
-  map:         [ ( new Map()              ), ( new Map()              ), ( new Map [ [ 'foo', 42, ], ]  ), ]
-  set:         [ ( new Set()              ), ( new Set()              ), ( new Set Array.from 'abcd'    ), ]
-  date:        [ ( new Date()             ), ( new Date()             ), ( new Date '1972-01-01'        ), ]
-  error:       [ ( new Error()            ), ( new Error()            ), ( new Error 'what!'            ), ]
-  list:        [ ( [ 97, 98, 99, ]        ), ( [ 97, 98, 99, ]        ), ( [ 97, 98, 100, ]             ), ]
-  boolean:     [ ( true                   ), ( true                   ), ( false                        ), ]
-  boolean:     [ ( false                  ), ( false                  ), ( true                         ), ]
-  function:    [ ( ( -> )                 ), ( ( -> )                 ), ( ( -> )                       ), ]
-  null:        [ ( null                   ), ( null                   ), ( undefined                    ), ]
-  text:        [ ( 'helo'                 ), ( 'helo'                 ), ( 'helo!!'                     ), ]
-  undefined:   [ ( undefined              ), ( undefined              ), ( null                         ), ]
-  regex:       [ ( /^xxx$/g               ), ( /^xxx$/g               ), ( /^xxx$/                      ), ]
-  pod:         [ ( {}                     ), ( {}                     ), ( { x: 42, }                   ), ]
-  nan:         [ ( NaN                    ), ( NaN                    ), ( NaN                          ), ]
-  infinity:    [ ( 1 / 0                  ), ( 1 / 0                  ), ( -Infinity                    ), ]
-  infinity:    [ ( -1 / 0                 ), ( -1 / 0                 ), ( +Infinity                    ), ]
-  number:      [ ( 12345                  ), ( 12345                  ), ( 12345.3                      ), ]
-  buffer:      [ ( new Buffer 'helo'      ), ( new Buffer 'helo'      ), ( new Buffer 'helo!!'          ), ]
-  arraybuffer: [ ( new ArrayBuffer 42     ), ( new ArrayBuffer 42     ), ( new ArrayBuffer 43           ), ]
-  symbol:      [ ( Symbol.for 'xxx'       ), ( Symbol.for 'xxx'       ), ( Symbol.for 'XXX'             ), ]
-  symbol:      [ ( Symbol 'yyy'           ), ( Symbol 'yyy'           ), ( Symbol 'yyy'                 ), ]
-  ]
+# type             value                   equal value             non-equal value                 takes attributes
+sample_values_by_types =
+  boolean:     [ ( true               ), ( true               ), ( false                        ), no,  ]
+  null:        [ ( null               ), ( null               ), ( undefined                    ), no,  ]
+  text:        [ ( 'helo'             ), ( 'helo'             ), ( 'helo!!'                     ), no,  ]
+  undefined:   [ ( undefined          ), ( undefined          ), ( null                         ), no,  ]
+  infinity:    [ ( 1 / 0              ), ( 1 / 0              ), ( -Infinity                    ), no,  ]
+  number:      [ ( 12345              ), ( 12345              ), ( 12345.3                      ), no,  ]
+  #.........................................................................................................
+  map:         [ ( new Map()          ), ( new Map()          ), ( new Map [ [ 'foo', 42, ], ]  ), yes, ]
+  set:         [ ( new Set()          ), ( new Set()          ), ( new Set Array.from 'abcd'    ), yes, ]
+  date:        [ ( new Date()         ), ( new Date()         ), ( new Date '1972-01-01'        ), yes, ]
+  list:        [ ( [ 97, 98, 99, ]    ), ( [ 97, 98, 99, ]    ), ( [ 97, 98, 100, ]             ), yes, ]
+  regex:       [ ( /^xxx$/g           ), ( /^xxx$/g           ), ( /^xxx$/                      ), yes, ]
+  pod:         [ ( {}                 ), ( {}                 ), ( { x: 42, }                   ), yes, ]
+  buffer:      [ ( new Buffer 'helo'  ), ( new Buffer 'helo'  ), ( new Buffer 'helo!!'          ), yes, ]
+  arraybuffer: [ ( new ArrayBuffer 42 ), ( new ArrayBuffer 42 ), ( new ArrayBuffer 43           ), yes, ]
+  #.........................................................................................................
+  error:       [ ( new Error()        ), ( new Error()        ), ( new Error 'what!'            ), yes, ]
+  function:    [ ( ( -> )             ), ( ( -> )             ), ( ( -> )                       ), yes, ]
+  symbol:      [ ( Symbol.for 'xxx'   ), ( Symbol.for 'xxx'   ), ( Symbol.for 'XXX'             ), no,  ]
+  #.........................................................................................................
+  nan:         [ ( NaN                ), ( NaN                ), ( NaN                          ), no,  ]
   #.........................................................................................................
 ###
 These do not work at the time being:
-  weakmap:     [ ( new WeakMap()          ), ( new WeakMap()          ), ( new WeakMap()          ), ]
-  generator:   [ ( ( -> yield 123 )()     ), ( ( -> yield 123 )()     ), ( ( -> yield 123 )()     ), ]
-  arguments:   [ ( arguments              ), ( arguments              ), ( arguments              ), ]
-  global:      [ ( global                 ), ( global                 ), ( global                 ), ]
+  weakmap:     [ ( new WeakMap()      ), ( new WeakMap()      ), ( new WeakMap()          ), no, ]
+  generator:   [ ( ( -> yield 123 )() ), ( ( -> yield 123 )() ), ( ( -> yield 123 )()     ), no, ]
+  arguments:   [ ( arguments          ), ( arguments          ), ( arguments              ), no, ]
+  global:      [ ( global             ), ( global             ), ( global                 ), no, ]
 ###
 
 
@@ -356,22 +355,39 @@ These do not work at the time being:
 #-----------------------------------------------------------------------------------------------------------
 @[ "test copying samples" ] = ( T ) ->
   #.........................................................................................................
-  for [ value, type, ] in samples_and_types
+  for type, [ value, eq_value, ne_value, takes_attributes, ] of sample_values_by_types
+    # debug '7170', type, [ value, eq_value, ne_value, is_primitive, ]
     try
       Object.keys value
       has_keys = CND.truth true
     catch
       has_keys = CND.truth false
-    debug type, ( CND.blue CND.type_of value ), ( CND.yellow CND.type_of mix.deep_copy value ), has_keys
-    T.eq ( CND.type_of value ), ( CND.type_of mix.deep_copy value )
+    # debug type, ( CND.blue CND.type_of value ), ( CND.yellow CND.type_of mix.deep_copy value ), has_keys
+    copied_value = mix.deep_copy value
+    T.eq ( CND.type_of value ), ( CND.type_of copied_value )
+    # debug '2010', type, ( CND.truth is_primitive ), ( CND.truth value is copied_value ), ( CND.truth is_primitive is ( value is copied_value ) )
+  #   if is_primitive
+  #     T.ok value is copied_value
+  #   else
+  #     T.ok value isnt copied_value
+  # #.........................................................................................................
+  # d_1   = /f/g
+  # d_1.x = [ 'foo', ]
+  # d_2   = mix.deep_copy d_1
+  # T.eq d_1,         d_2
+  # T.ok d_1    isnt  d_2
+  # T.eq d_1.x,       d_2.x
+  # T.ok d_1.x  isnt  d_2.x
   #.........................................................................................................
-  d_1   = /f/g
-  d_1.x = [ 'foo', ]
-  d_2   = mix.deep_copy d_1
-  T.eq d_1,         d_2
-  T.ok d_1    isnt  d_2
-  T.eq d_1.x,       d_2.x
-  T.ok d_1.x  isnt  d_2.x
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@[ "copying primitive values" ] = ( T ) ->
+  T.eq mix(), null
+  T.eq ( mix null ), null
+  T.eq ( mix undefined ), undefined
+  T.eq ( mix undefined, null ), null
+  T.eq ( mix 'a', 'b', 'c' ), 'c'
   #.........................................................................................................
   return null
 
@@ -387,8 +403,9 @@ unless module.parent?
     # "options example with nested reducers"
     # "unused reducers must not cause entry"
     # "`mix` leaves functions as-is"
-    "`mix.deep_copy` invariances and identities"
-    "test copying samples"
+    # "`mix.deep_copy` invariances and identities"
+    # "test copying samples"
+    "copying primitive values"
     ]
   @_prune()
   @_main()
@@ -396,3 +413,23 @@ unless module.parent?
   # debug Object.keys MULTIMIX
   # debug Object.keys mix
   # debug Object.keys mix.tools
+
+  ###
+  σ_x = Symbol.for 'x'
+  y   = 'x234'
+  # d = { x: 42, "#{y}": 108, "#{σ_x}": 123456, }
+  `
+  d = { x: 42, [y]: 108, [σ_x]: 123456, }
+  `
+  debug d
+  debug Object.keys d
+  debug ( k for k of d )
+  debug d[ σ_x ]
+  ###
+
+
+
+
+
+
+
