@@ -24,9 +24,9 @@ echo                      = CND.echo.bind CND
   return x
 
 #-----------------------------------------------------------------------------------------------------------
-@object = ( x, seen ) ->
+@object = ( x, seen, seed ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
-  R = Object.create Object.getPrototypeOf x
+  R = seed ? Object.create Object.getPrototypeOf x
   seen.set x, R
   if      Object.isFrozen     x then Object.freeze            R
   if      Object.isSealed     x then Object.seal              R
@@ -34,8 +34,15 @@ echo                      = CND.echo.bind CND
   return R
 
 #-----------------------------------------------------------------------------------------------------------
+@list = ( x, seen ) -> @object x, seen, new Array x.length
+@set  = ( x, seen ) -> @object x, seen, new Set x
+@map  = ( x, seen ) -> @object x, seen, new Map x
+
+#-----------------------------------------------------------------------------------------------------------
 @by_constructor = ( x, seen ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = new x.constructor x
   seen.set x, R
   return R
+
+

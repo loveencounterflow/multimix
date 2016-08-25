@@ -23,7 +23,7 @@ echo                      = CND.echo.bind CND
 
 
 warn "introduce json, xjson methods for faster copying of known-to-be-ok values"
-warn "reducer keys: '*' (main), '*/*' (any attributes), '**' (main and attributes)?"
+warn "reducer keys: '*' (main), '*/*' (any fields), '**' (main and fields)?"
 
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX          = {}
@@ -35,33 +35,39 @@ MULTIMIX.COPIERS  = require './copiers'
 MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   #.........................................................................................................
   return null if mixins.length is 0
-  [ seed
-    tail_mixins... ]  = mixins
+  [ mixin_seed
+    mixin_tail... ]   = mixins
+  reducers_seed       = reducers?[ 'seed' ]
+  seed                = reducers_seed ? mixin_seed
+  ### TAINT consider to call with `S` instead for consistency ###
+  seed                = seed mixins if CND.isa_function seed
   type                = CND.type_of seed
   description         = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
-  { attributes
+  { has_fields
     copy            } = description
   seen                = new Map()
-  R                   = copy.call L, seed, seen
+  # R                   = copy.call L, seed, seen
+  R                   = seed
   #.........................................................................................................
-  return R if ( not attributes ) and ( tail_mixins.length is 0 )
-  throw 'not implemented'
+  ### TAINT cant return here b/c of `after` hook ###
+  return R if ( not has_fields ) and ( mixin_tail.length is 0 )
   #.........................................................................................................
-  S               = L.REDUCERS[ σ_new_state ] reducers, seen
-  root ?= R
+  S                   = L.REDUCERS[ σ_new_state ] reducers, seen
+  root               ?= R
   #.........................................................................................................
   ### Deal with nested reducers first: ###
-  for rd_key, rd_value of reducers
-    if CND.isa_pod rd_value
-      selector.push rd_key
-      partial_mixins = []
-      for mixin in mixins
-        partial_mixin = mixin[ rd_key ]
-        partial_mixins.push partial_mixin if partial_mixin?
-      if partial_mixins.length > 0
-        R[ rd_key ] = MULTIMIX.mix L, partial_mixins, rd_value, root, selector
-      reducers[ rd_key ]  = 'skip'
-      selector.pop rd_key
+  if ( fields = S.reducers[ 'fields' ] )?
+    for field_key, field_value of fields
+      if CND.isa_pod field_value
+        selector.push field_key
+        partial_mixins = []
+        for mixin in mixins
+          partial_mixin = mixin[ field_key ]
+          partial_mixins.push partial_mixin if partial_mixin?
+        if partial_mixins.length > 0
+          R[ field_key ] = MULTIMIX.mix L, partial_mixins, field_value, root, selector
+        reducers[ field_key ]  = 'skip'
+        selector.pop field_key
   #.........................................................................................................
   ### Process unnested reducers: ###
   for mixin in mixins
@@ -69,13 +75,17 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
       S.path          = join selector..., mx_key
       S.root          = root
       S.current       = R
-      S.reducer_name  = S.reducers[ mx_key ] ? S.reducer_fallback
+      S.reducer_name  = S.reducers[ 'fields' ]?[ mx_key ] ? S.reducer_fallback
       continue if L.REDUCERS[ σ_reject ] S, mx_key, mx_value
       unless ( reducer = L.REDUCERS[ S.reducer_name ] )?
         throw new Error "unknown reducer #{rpr S.reducer_name}"
       reducer.call L.REDUCERS, S, mx_key, mx_value
   #.........................................................................................................
   L.REDUCERS[ σ_finalize ] S
+  if ( hook = reducers?[ 'after' ] )?
+    unless ( CND.type_of hook ) is 'function'
+      throw new Error "expected function for 'after' hook, got a #{type}"
+    hook S
   #.........................................................................................................
   # S.path    = null
   # S.root    = null
@@ -108,40 +118,50 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
 ###
 
 #-----------------------------------------------------------------------------------------------------------
-MULTIMIX.type_descriptions =
+do ->
   #.........................................................................................................
-  boolean:     { type: 'boolean',       attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  null:        { type: 'null',          attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  text:        { type: 'text',          attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  undefined:   { type: 'undefined',     attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  infinity:    { type: 'infinity',      attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  number:      { type: 'number',        attributes: no,  copy: MULTIMIX.COPIERS.id, }
-  nan:         { type: 'nan',           attributes: no,  copy: MULTIMIX.COPIERS.id, }
+  copy_id             = ( P... ) -> MULTIMIX.COPIERS.id             P...
+  copy_object         = ( P... ) -> MULTIMIX.COPIERS.object         P...
+  copy_list           = ( P... ) -> MULTIMIX.COPIERS.list           P...
+  copy_map            = ( P... ) -> MULTIMIX.COPIERS.map            P...
+  copy_set            = ( P... ) -> MULTIMIX.COPIERS.set            P...
+  copy_by_constructor = ( P... ) -> MULTIMIX.COPIERS.by_constructor P...
+  dont_copy           = ( P... ) -> MULTIMIX.COPIERS.dont           P...
   #.........................................................................................................
-  pod:         { type: 'pod',           attributes: yes, copy: MULTIMIX.COPIERS.object, }
-  #.........................................................................................................
-  date:        { type: 'date',          attributes: yes, copy: MULTIMIX.COPIERS.by_constructor, }
-  regex:       { type: 'regex',         attributes: yes, copy: MULTIMIX.COPIERS.by_constructor, }
-  #.........................................................................................................
-  map:         { type: 'map',           attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  set:         { type: 'set',           attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  list:        { type: 'list',          attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  buffer:      { type: 'buffer',        attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  arraybuffer: { type: 'arraybuffer',   attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  error:       { type: 'error',         attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  function:    { type: 'function',      attributes: yes, copy: MULTIMIX.COPIERS.dont, }
-  symbol:      { type: 'symbol',        attributes: no,  copy: MULTIMIX.COPIERS.dont, }
-  #.........................................................................................................
-  # These do not work at the time being:
-  weakmap:     { type: 'weakmap',       attributes: no,  copy: MULTIMIX.COPIERS.dont, }
-  generator:   { type: 'generator',     attributes: no,  copy: MULTIMIX.COPIERS.dont, }
-  arguments:   { type: 'arguments',     attributes: no,  copy: MULTIMIX.COPIERS.dont, }
-  global:      { type: 'global',        attributes: no,  copy: MULTIMIX.COPIERS.dont, }
+  MULTIMIX.type_descriptions =
+    #.........................................................................................................
+    boolean:     { type: 'boolean',       has_fields: no,  copy: copy_id,                 }
+    null:        { type: 'null',          has_fields: no,  copy: copy_id,                 }
+    text:        { type: 'text',          has_fields: no,  copy: copy_id,                 }
+    undefined:   { type: 'undefined',     has_fields: no,  copy: copy_id,                 }
+    infinity:    { type: 'infinity',      has_fields: no,  copy: copy_id,                 }
+    number:      { type: 'number',        has_fields: no,  copy: copy_id,                 }
+    nan:         { type: 'nan',           has_fields: no,  copy: copy_id,                 }
+    #.........................................................................................................
+    pod:         { type: 'pod',           has_fields: yes, copy: copy_object,             }
+    list:        { type: 'list',          has_fields: yes, copy: copy_list,               }
+    map:         { type: 'map',           has_fields: yes, copy: copy_map,                }
+    set:         { type: 'set',           has_fields: yes, copy: copy_set,                }
+    #.........................................................................................................
+    date:        { type: 'date',          has_fields: yes, copy: copy_by_constructor,     }
+    regex:       { type: 'regex',         has_fields: yes, copy: copy_by_constructor,     }
+    #.........................................................................................................
+    buffer:      { type: 'buffer',        has_fields: yes, copy: dont_copy,               }
+    arraybuffer: { type: 'arraybuffer',   has_fields: yes, copy: dont_copy,               }
+    error:       { type: 'error',         has_fields: yes, copy: dont_copy,               }
+    function:    { type: 'function',      has_fields: yes, copy: dont_copy,               }
+    symbol:      { type: 'symbol',        has_fields: no,  copy: dont_copy,               }
+    #.........................................................................................................
+    # These do not work at the time being:
+    weakmap:     { type: 'weakmap',       has_fields: no,  copy: dont_copy,               }
+    generator:   { type: 'generator',     has_fields: no,  copy: dont_copy,               }
+    arguments:   { type: 'arguments',     has_fields: no,  copy: dont_copy,               }
+    global:      { type: 'global',        has_fields: no,  copy: dont_copy,               }
 
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX.type_descriptions[ σ_unknown_type ] =
   type:       σ_unknown_type
-  attributes: no
+  has_fields: no
   copy:       MULTIMIX.COPIERS.dont
 
 
@@ -152,10 +172,9 @@ MULTIMIX.use = ( custom_reducers... ) ->
   ### Returns a version of `mix` that uses the reducers passed in to `use`; the resulting reducer is
   derived from the reducers list by applying `mix`. Turtles. ###
   custom_reducers.splice 0, 0, { '*': 'assign', }
-  ### for the time being
   reducers            = MULTIMIX.mix MULTIMIX, custom_reducers, null
-  ###
-  reducers = custom_reducers
+  debug '28773', custom_reducers
+  urge '28773', reducers
   R                   = ( mixins... ) -> MULTIMIX.mix R, mixins, reducers
   R.TOOLS             = MULTIMIX.TOOLS
   R.REDUCERS          = MULTIMIX.REDUCERS
