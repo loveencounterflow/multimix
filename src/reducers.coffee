@@ -24,7 +24,7 @@ TOOLS                     = require './tools'
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@[ σ_new_state ] = ( reducers, seen = null ) ->
+@[ σ_new_state ] = ( reducers ) ->
   S                   = {}
   S.reducers          = reducers ? {}
   S.reducer_fallback  = S.reducers[ '*' ] ? 'assign'
@@ -37,7 +37,7 @@ TOOLS                     = require './tools'
   S.path              = null
   S.root              = null
   S.current           = null
-  S.seen              = seen ? new Map()
+  S.seen              = new Map()
   #.........................................................................................................
   ### TAINT presently the reducers namespace has mixin keys as keys except for the special
   key '*'. This severly restricts the expressiveness of the configuration. Solutions:

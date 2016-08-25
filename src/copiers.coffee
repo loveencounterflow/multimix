@@ -16,33 +16,33 @@ urge                      = CND.get_logger 'urge',      badge
 echo                      = CND.echo.bind CND
 
 #-----------------------------------------------------------------------------------------------------------
-@dont = ( x, seen ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
+@dont = ( S, x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
 
 #-----------------------------------------------------------------------------------------------------------
-@id = ( x, seen ) ->
-  seen.set x, x
+@id = ( S, x ) ->
+  S.seen.set x, x
   return x
 
 #-----------------------------------------------------------------------------------------------------------
-@object = ( x, seen, seed ) ->
+@object = ( S, x, seed ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = seed ? Object.create Object.getPrototypeOf x
-  seen.set x, R
+  S.seen.set x, R
   if      Object.isFrozen     x then Object.freeze            R
   if      Object.isSealed     x then Object.seal              R
   unless  Object.isExtensible x then Object.preventExtensions R
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@list = ( x, seen ) -> @object x, seen, new Array x.length
-@set  = ( x, seen ) -> @object x, seen, new Set x
-@map  = ( x, seen ) -> @object x, seen, new Map x
+@list = ( S, x ) -> @object S, x, new Array x.length
+@set  = ( S, x ) -> @object S, x, new Set x
+@map  = ( S, x ) -> @object S, x, new Map x
 
 #-----------------------------------------------------------------------------------------------------------
-@by_constructor = ( x, seen ) ->
+@by_constructor = ( S, x ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = new x.constructor x
-  seen.set x, R
+  S.seen.set x, R
   return R
 
 

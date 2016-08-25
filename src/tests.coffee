@@ -408,8 +408,10 @@ These do not work at the time being:
   reducers =
     # seed:     -> d = new Set()
     seed:     my_seed
-    before:   ( P... ) -> debug '33262-before', P
-    after:    ( P... ) -> debug '33262-after', P
+    # before:   ( P... ) -> debug '33262-before', P
+    after:    ( S ) ->
+      S.seed.add x for x in S.seed[ 'primes' ]
+      delete S.seed[ 'primes' ]
     fields:
       # '':       ( P... ) -> debug P
       primes:   'append'
@@ -433,7 +435,7 @@ unless module.parent?
     # "`mix` leaves functions as-is"
     # "`mix.deep_copy` invariances and identities"
     # "test copying samples"
-    # "copying primitive values"
+    "copying primitive values"
     "simple copying"
     ]
   @_prune()

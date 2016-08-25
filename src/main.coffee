@@ -32,28 +32,33 @@ MULTIMIX.REDUCERS = require './reducers'
 MULTIMIX.COPIERS  = require './copiers'
 
 #-----------------------------------------------------------------------------------------------------------
+MULTIMIX._get_seed = ( L, S, seed, do_copy ) ->
+  #.........................................................................................................
+  if do_copy
+    type          = CND.type_of seed
+    description   = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
+    { has_fields
+      copy      } = description
+    return copy.call L, S, seed
+  #.........................................................................................................
+  ### TAINT consider to call with `S` for consistency ###
+  seed = seed() if CND.isa_function seed
+  return seed
+
+#-----------------------------------------------------------------------------------------------------------
 MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   #.........................................................................................................
   return null if mixins.length is 0
   [ mixin_seed
     mixin_tail... ]   = mixins
   reducers_seed       = reducers?[ 'seed' ]
-  seed                = reducers_seed ? mixin_seed
-  ### TAINT consider to call with `S` instead for consistency ###
-  seed                = seed mixins if CND.isa_function seed
-  type                = CND.type_of seed
-  description         = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
-  { has_fields
-    copy            } = description
-  seen                = new Map()
-  # R                   = copy.call L, seed, seen
-  R                   = seed
+  S                   = L.REDUCERS[ σ_new_state ] reducers
   #.........................................................................................................
-  ### TAINT cant return here b/c of `after` hook ###
-  return R if ( not has_fields ) and ( mixin_tail.length is 0 )
+  if reducers_seed? then  seed = MULTIMIX._get_seed L, S, reducers_seed, no
+  else                    seed = MULTIMIX._get_seed L, S,    mixin_seed, yes
   #.........................................................................................................
-  S                   = L.REDUCERS[ σ_new_state ] reducers, seen
-  root               ?= R
+  S.seed  = seed
+  root   ?= seed
   #.........................................................................................................
   ### Deal with nested reducers first: ###
   if ( fields = S.reducers[ 'fields' ] )?
@@ -65,7 +70,7 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
           partial_mixin = mixin[ field_key ]
           partial_mixins.push partial_mixin if partial_mixin?
         if partial_mixins.length > 0
-          R[ field_key ] = MULTIMIX.mix L, partial_mixins, field_value, root, selector
+          S.seed[ field_key ] = MULTIMIX.mix L, partial_mixins, field_value, root, selector
         reducers[ field_key ]  = 'skip'
         selector.pop field_key
   #.........................................................................................................
@@ -74,7 +79,7 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
     for mx_key, mx_value of mixin
       S.path          = join selector..., mx_key
       S.root          = root
-      S.current       = R
+      S.current       = S.seed
       S.reducer_name  = S.reducers[ 'fields' ]?[ mx_key ] ? S.reducer_fallback
       continue if L.REDUCERS[ σ_reject ] S, mx_key, mx_value
       unless ( reducer = L.REDUCERS[ S.reducer_name ] )?
@@ -83,16 +88,15 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   #.........................................................................................................
   L.REDUCERS[ σ_finalize ] S
   #.........................................................................................................
-  debug '20301', S.reducers
   if ( hook = S.reducers?[ 'after' ] )?
-    unless ( CND.type_of hook ) is 'function'
+    unless ( type = CND.type_of hook ) is 'function'
       throw new Error "expected function for 'after' hook, got a #{type}"
     hook S
   #.........................................................................................................
   # S.path    = null
   # S.root    = null
   # S.current = null
-  return R
+  return S.seed
 
 #===========================================================================================================
 #
@@ -175,13 +179,14 @@ MULTIMIX.use = ( custom_reducers... ) ->
   derived from the reducers list by applying `mix`. Turtles. ###
   custom_reducers.splice 0, 0, { '*': 'assign', }
   reducers            = MULTIMIX.mix MULTIMIX, custom_reducers, null
-  debug '28773', custom_reducers
-  urge '28773', reducers
+  # debug '28773', custom_reducers
+  # urge '28773', reducers
   R                   = ( mixins... ) -> MULTIMIX.mix R, mixins, reducers
   R.TOOLS             = MULTIMIX.TOOLS
   R.REDUCERS          = MULTIMIX.REDUCERS
   R.COPIERS           = MULTIMIX.COPIERS
   R.type_descriptions = MULTIMIX.type_descriptions
+  R._get_seed         = MULTIMIX._get_seed
   R.use               = MULTIMIX.use
   # R.deep_copy         = ( x ) -> CND.deep_copy x
   return R
