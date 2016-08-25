@@ -82,7 +82,9 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
       reducer.call L.REDUCERS, S, mx_key, mx_value
   #.........................................................................................................
   L.REDUCERS[ σ_finalize ] S
-  if ( hook = reducers?[ 'after' ] )?
+  #.........................................................................................................
+  debug '20301', S.reducers
+  if ( hook = S.reducers?[ 'after' ] )?
     unless ( CND.type_of hook ) is 'function'
       throw new Error "expected function for 'after' hook, got a #{type}"
     hook S

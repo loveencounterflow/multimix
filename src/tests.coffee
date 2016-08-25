@@ -408,11 +408,11 @@ These do not work at the time being:
   reducers =
     # seed:     -> d = new Set()
     seed:     my_seed
+    before:   ( P... ) -> debug '33262-before', P
+    after:    ( P... ) -> debug '33262-after', P
     fields:
       # '':       ( P... ) -> debug P
       primes:   'append'
-    before:   ( P... ) -> debug '33262-before', P
-    after:    ( P... ) -> debug '33262-after', P
   #.........................................................................................................
   debug '39302', data_ng = ( mix.use reducers ) data_og_0, data_og_1
   T.ok data_ng is my_seed

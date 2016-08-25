@@ -46,13 +46,14 @@ TOOLS                     = require './tools'
   * reserve one other special key for all special keys
   ###
   #.........................................................................................................
-  for key, reducer of S.reducers
-    if reducer is 'include'
-      S.reducers[ key   ] = S.reducer_fallback
-      continue
-    if CND.isa_function reducer
-      S.functions[  key ] = reducer
-      S.reducers[   key ] = 'function'
+  if ( fields = S.reducers[ 'fields' ] )?
+    for key, reducer of fields
+      if reducer is 'include'
+        fields[ key ] = S.reducer_fallback
+        continue
+      if CND.isa_function reducer
+        S.functions[  key ] = reducer
+        fields[       key ] = 'function'
   #.........................................................................................................
   return S
 
