@@ -383,10 +383,15 @@ These do not work at the time being:
 
 #-----------------------------------------------------------------------------------------------------------
 @[ "copying primitive values" ] = ( T ) ->
-  T.eq mix(), null
-  T.eq ( mix null               ), null
-  T.eq ( mix undefined          ), undefined
-  T.eq ( mix undefined, null    ), null
+  my_mix = mix.use fields: { '': ( ( P... ) -> debug P ), }
+  # info mix 'a', 'b', 'c'
+  info my_mix { '': 'a', }, { '': 'b', }, { '': 'c', }
+  info ( my_mix { '': 'a', }, { '': 'b', }, { '': 'c', } )[ '' ]
+  #.........................................................................................................
+  # T.eq mix(), null
+  # T.eq ( mix null               ), null
+  # T.eq ( mix undefined          ), undefined
+  # T.eq ( mix undefined, null    ), null
   # T.eq ( mix 'a', 'b', 'c'      ), 'c'
   # T.eq ( mix 22                 ), 22
   # T.eq ( mix true               ), true
@@ -436,7 +441,7 @@ unless module.parent?
     # "`mix.deep_copy` invariances and identities"
     # "test copying samples"
     "copying primitive values"
-    "simple copying"
+    # "simple copying"
     ]
   @_prune()
   @_main()

@@ -52,13 +52,16 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   [ mixin_seed
     mixin_tail... ]   = mixins
   reducers_seed       = reducers?[ 'seed' ]
-  S                   = L.REDUCERS[ σ_new_state ] reducers
+  S                   = L.REDUCERS[ σ_new_state ] reducers, mixins
   #.........................................................................................................
   if reducers_seed? then  seed = MULTIMIX._get_seed L, S, reducers_seed, no
   else                    seed = MULTIMIX._get_seed L, S,    mixin_seed, yes
   #.........................................................................................................
   S.seed  = seed
   root   ?= seed
+  # ### !!! experimental !!! ###
+  # for mixin, mixin_idx in mixins
+  #   mixins[ mixin_idx ] = { '': mixin, }
   #.........................................................................................................
   ### Deal with nested reducers first: ###
   if ( fields = S.reducers[ 'fields' ] )?
@@ -76,6 +79,7 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   #.........................................................................................................
   ### Process unnested reducers: ###
   for mixin in mixins
+    urge '33415', mixin
     for mx_key, mx_value of mixin
       S.path          = join selector..., mx_key
       S.root          = root
@@ -96,6 +100,7 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   # S.path    = null
   # S.root    = null
   # S.current = null
+  debug '30221', S
   return S.seed
 
 #===========================================================================================================

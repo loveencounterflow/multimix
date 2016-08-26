@@ -24,9 +24,10 @@ TOOLS                     = require './tools'
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@[ σ_new_state ] = ( reducers ) ->
+@[ σ_new_state ] = ( reducers, mixins ) ->
   S                   = {}
   S.reducers          = reducers ? {}
+  S.mixins            = mixins
   S.reducer_fallback  = S.reducers[ '*' ] ? 'assign'
   #.........................................................................................................
   S.cache             = {}
@@ -69,6 +70,7 @@ TOOLS                     = require './tools'
     S.current[ key ] = sum / count
   #.........................................................................................................
   ### functions ###
+  help '50332', S
   for key, values of S.cache
     unless CND.isa_function ( method = S.functions[ key ] )
       throw new Error "not a function for key #{rpr key}: #{rpr method}"
