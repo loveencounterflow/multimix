@@ -45,8 +45,8 @@ COPIERS                   = @
 
 #-----------------------------------------------------------------------------------------------------------
 @RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
-# @RAW.list = ( x ) -> @object x, new Array x.length
-@RAW.list = ( x ) -> @object x, []
+@RAW.list = ( x ) -> @object x, new Array x.length
+# @RAW.list = ( x ) -> @object x, []
 @RAW.set  = ( x ) -> @object x, new Set x
 @RAW.map  = ( x ) -> @object x, new Map x
 
