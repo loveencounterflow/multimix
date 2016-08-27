@@ -32,6 +32,7 @@ COPIERS                   = @
 @RAW.object = ( x, seed ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = seed ? Object.create Object.getPrototypeOf x
+  ### copy properties here or put the below into a `finalize` method ###
   if      Object.isFrozen     x then Object.freeze            R
   if      Object.isSealed     x then Object.seal              R
   unless  Object.isExtensible x then Object.preventExtensions R
@@ -45,10 +46,20 @@ COPIERS                   = @
 
 #-----------------------------------------------------------------------------------------------------------
 @RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
-@RAW.list = ( x ) -> @object x, new Array x.length
-# @RAW.list = ( x ) -> @object x, []
-@RAW.set  = ( x ) -> @object x, new Set x
-@RAW.map  = ( x ) -> @object x, new Map x
+# @RAW.list = ( x ) -> @object x, new Array x.length
+@RAW.list = ( x ) -> []
+
+#-----------------------------------------------------------------------------------------------------------
+@RAW.set  = ( x ) ->
+  R = new Set()
+  x.forEach ( value ) -> R.add deep_copy x
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
+@RAW.map  = ( x ) ->
+  R = new Map()
+  x.forEach ( value, key ) -> R.set ( deep_copy key ), ( deep_copy value )
+  return R
 
 
 #===========================================================================================================
