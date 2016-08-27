@@ -29,7 +29,7 @@ COPIERS                   = @
   return x
 
 #-----------------------------------------------------------------------------------------------------------
-@RAW.object = ( x ) ->
+@RAW.object = ( x, seed ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = seed ? Object.create Object.getPrototypeOf x
   if      Object.isFrozen     x then Object.freeze            R
@@ -45,7 +45,8 @@ COPIERS                   = @
 
 #-----------------------------------------------------------------------------------------------------------
 @RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
-@RAW.list = ( x ) -> @object x, new Array x.length
+# @RAW.list = ( x ) -> @object x, new Array x.length
+@RAW.list = ( x ) -> @object x, []
 @RAW.set  = ( x ) -> @object x, new Set x
 @RAW.map  = ( x ) -> @object x, new Map x
 

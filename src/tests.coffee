@@ -455,15 +455,27 @@ These do not work at the time being:
     new Date '1983-06-01'
     ]
   #.........................................................................................................
+  object_probes = [
+    [ 1, 2, 3, ]
+    { a: 123, b: 456, }
+    ]
+  #.........................................................................................................
   for probe in primitive_value_probes
     # debug ( rpr probe ), rpr raw_copy probe
     T.ok probe is raw_copy probe
   #.........................................................................................................
   for probe in constructor_probes
-    # debug ( rpr probe ), rpr raw_copy probe
     result = raw_copy probe
+    debug ( rpr probe ), rpr result
     T.eq probe,     result
     T.ok probe isnt result
+  #.........................................................................................................
+  for probe in object_probes
+    result = raw_copy probe
+    debug ( rpr probe ), rpr result
+    debug ( rpr probe ), rpr result
+    # T.eq probe,     result
+    # T.ok probe isnt result
   #.........................................................................................................
   return null
 
