@@ -14,35 +14,111 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 echo                      = CND.echo.bind CND
+#...........................................................................................................
+σ_unknown_type            = Symbol.for 'unknown_type'
+COPIERS                   = @
+
+
+#===========================================================================================================
+# RAW COPIERS
+#-----------------------------------------------------------------------------------------------------------
+@RAW = {}
 
 #-----------------------------------------------------------------------------------------------------------
-@dont = ( S, x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
-
-#-----------------------------------------------------------------------------------------------------------
-@id = ( S, x ) ->
-  S.seen.set x, x
+@RAW.id = ( x ) ->
   return x
 
 #-----------------------------------------------------------------------------------------------------------
-@object = ( S, x, seed ) ->
+@RAW.object = ( x ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = seed ? Object.create Object.getPrototypeOf x
-  S.seen.set x, R
   if      Object.isFrozen     x then Object.freeze            R
   if      Object.isSealed     x then Object.seal              R
   unless  Object.isExtensible x then Object.preventExtensions R
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@list = ( S, x ) -> @object S, x, new Array x.length
-@set  = ( S, x ) -> @object S, x, new Set x
-@map  = ( S, x ) -> @object S, x, new Map x
-
-#-----------------------------------------------------------------------------------------------------------
-@by_constructor = ( S, x ) ->
+@RAW.by_constructor = ( x ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = new x.constructor x
-  S.seen.set x, R
   return R
+
+#-----------------------------------------------------------------------------------------------------------
+@RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
+@RAW.list = ( x ) -> @object x, new Array x.length
+@RAW.set  = ( x ) -> @object x, new Set x
+@RAW.map  = ( x ) -> @object x, new Map x
+
+
+#===========================================================================================================
+#
+#-----------------------------------------------------------------------------------------------------------
+###
+  '[object Object]': copyObject,
+  '[object Array]': copyArray,
+  '[object Error]': justDont,
+  '[object Map]': copyMap,
+  '[object Set]': copySet,
+
+  '[object Promise]': justDont,
+  '[object XMLHttpRequest]': justDont,
+  '[object NodeList]': copyArray,
+  '[object ArrayBuffer]': copySlice,
+  '[object Int8Array]': copyConstructor,
+  '[object Uint8Array]': copyConstructor,
+  '[object Uint8ClampedArray]': copyConstructor,
+  '[object Int16Array]': copyConstructor,
+  '[object Uint16Array]': copyConstructor,
+  '[object Int32Array]': copyConstructor,
+  '[object Uint32Array]': copyConstructor,
+  '[object Float32Array]': copyConstructor,
+  '[object Float64Array]': copyConstructor
+###
+
+#-----------------------------------------------------------------------------------------------------------
+do ->
+  #.........................................................................................................
+  copy_id             = ( x ) -> COPIERS.RAW.id             x
+  copy_object         = ( x ) -> COPIERS.RAW.object         x
+  copy_list           = ( x ) -> COPIERS.RAW.list           x
+  copy_map            = ( x ) -> COPIERS.RAW.map            x
+  copy_set            = ( x ) -> COPIERS.RAW.set            x
+  copy_by_constructor = ( x ) -> COPIERS.RAW.by_constructor x
+  dont_copy           = ( x ) -> COPIERS.RAW.dont           x
+  #.........................................................................................................
+  type_descriptions = [
+    #.......................................................................................................
+    { type: 'boolean',       has_fields: no,  copy: copy_id,                                              }
+    { type: 'null',          has_fields: no,  copy: copy_id,                                              }
+    { type: 'text',          has_fields: no,  copy: copy_id,                                              }
+    { type: 'undefined',     has_fields: no,  copy: copy_id,                                              }
+    { type: 'infinity',      has_fields: no,  copy: copy_id,                                              }
+    { type: 'number',        has_fields: no,  copy: copy_id,                                              }
+    { type: 'nan',           has_fields: no,  copy: copy_id,                                              }
+    #.......................................................................................................
+    { type: 'pod',           has_fields: yes, copy: copy_object,                                          }
+    { type: 'list',          has_fields: yes, copy: copy_list,                                            }
+    { type: 'map',           has_fields: yes, copy: copy_map,                                             }
+    { type: 'set',           has_fields: yes, copy: copy_set,                                             }
+    #.......................................................................................................
+    { type: 'date',          has_fields: yes, copy: copy_by_constructor,                                  }
+    { type: 'regex',         has_fields: yes, copy: copy_by_constructor,                                  }
+    #.......................................................................................................
+    { type: 'buffer',        has_fields: yes, copy: dont_copy,                                            }
+    { type: 'arraybuffer',   has_fields: yes, copy: dont_copy,                                            }
+    { type: 'error',         has_fields: yes, copy: dont_copy,                                            }
+    { type: 'function',      has_fields: yes, copy: dont_copy,                                            }
+    { type: 'symbol',        has_fields: no,  copy: dont_copy,                                            }
+    # These do not work at the time being:
+    { type: 'weakmap',       has_fields: no,  copy: dont_copy,                                            }
+    { type: 'generator',     has_fields: no,  copy: dont_copy,                                            }
+    { type: 'arguments',     has_fields: no,  copy: dont_copy,                                            }
+    { type: 'global',        has_fields: no,  copy: dont_copy,                                            }
+    { type: σ_unknown_type,  has_fields: no,  copy: dont_copy,                                            }
+    #.......................................................................................................
+    ]
+  #.........................................................................................................
+  COPIERS.type_descriptions = {}
+  COPIERS.type_descriptions[ d[ 'type' ] ] = d for d in type_descriptions
 
 

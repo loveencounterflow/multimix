@@ -20,30 +20,19 @@ echo                      = CND.echo.bind CND
 σ_reject                  = Symbol.for 'reject'
 σ_finalize                = Symbol.for 'finalize'
 σ_unknown_type            = Symbol.for 'unknown_type'
-
-
-warn "introduce json, xjson methods for faster copying of known-to-be-ok values"
-warn "reducer keys: '*' (main), '*/*' (any fields), '**' (main and fields)?"
-
-#-----------------------------------------------------------------------------------------------------------
-MULTIMIX          = {}
-MULTIMIX.TOOLS    = require './tools'
-MULTIMIX.REDUCERS = require './reducers'
-MULTIMIX.COPIERS  = require './copiers'
+#...........................................................................................................
+MULTIMIX                  = {}
+MULTIMIX.TOOLS            = require './tools'
+MULTIMIX.REDUCERS         = require './reducers'
+MULTIMIX.COPIERS          = require './copiers'
 
 #-----------------------------------------------------------------------------------------------------------
-MULTIMIX._get_seed = ( L, S, seed, do_copy ) ->
-  #.........................................................................................................
-  if do_copy
-    type          = CND.type_of seed
-    description   = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
-    { has_fields
-      copy      } = description
-    return copy.call L, S, seed
-  #.........................................................................................................
-  ### TAINT consider to call with `S` for consistency ###
-  seed = seed() if CND.isa_function seed
-  return seed
+MULTIMIX._get_seed = ( L, S, seed ) ->
+  type          = CND.type_of seed
+  description   = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
+  { has_fields
+    copy      } = description
+  return copy.call L, S, seed
 
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
@@ -51,14 +40,10 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   return null if mixins.length is 0
   [ mixin_seed
     mixin_tail... ]   = mixins
-  reducers_seed       = reducers?[ 'seed' ]
   S                   = L.REDUCERS[ σ_new_state ] reducers, mixins
-  #.........................................................................................................
-  if reducers_seed? then  seed = MULTIMIX._get_seed L, S, reducers_seed, no
-  else                    seed = MULTIMIX._get_seed L, S,    mixin_seed, yes
-  #.........................................................................................................
-  S.seed  = seed
-  root   ?= seed
+  seed                = MULTIMIX._get_seed L, S, mixin_seed
+  S.seed              = seed
+  root               ?= seed
   # ### !!! experimental !!! ###
   # for mixin, mixin_idx in mixins
   #   mixins[ mixin_idx ] = { '': mixin, }
@@ -103,77 +88,6 @@ MULTIMIX.mix = ( L, mixins, reducers, root = null, selector = [] ) ->
   debug '30221', S
   return S.seed
 
-#===========================================================================================================
-#
-#-----------------------------------------------------------------------------------------------------------
-###
-  '[object Object]': copyObject,
-  '[object Array]': copyArray,
-  '[object Error]': justDont,
-  '[object Map]': copyMap,
-  '[object Set]': copySet,
-
-  '[object Promise]': justDont,
-  '[object XMLHttpRequest]': justDont,
-  '[object NodeList]': copyArray,
-  '[object ArrayBuffer]': copySlice,
-  '[object Int8Array]': copyConstructor,
-  '[object Uint8Array]': copyConstructor,
-  '[object Uint8ClampedArray]': copyConstructor,
-  '[object Int16Array]': copyConstructor,
-  '[object Uint16Array]': copyConstructor,
-  '[object Int32Array]': copyConstructor,
-  '[object Uint32Array]': copyConstructor,
-  '[object Float32Array]': copyConstructor,
-  '[object Float64Array]': copyConstructor
-###
-
-#-----------------------------------------------------------------------------------------------------------
-do ->
-  #.........................................................................................................
-  copy_id             = ( P... ) -> MULTIMIX.COPIERS.id             P...
-  copy_object         = ( P... ) -> MULTIMIX.COPIERS.object         P...
-  copy_list           = ( P... ) -> MULTIMIX.COPIERS.list           P...
-  copy_map            = ( P... ) -> MULTIMIX.COPIERS.map            P...
-  copy_set            = ( P... ) -> MULTIMIX.COPIERS.set            P...
-  copy_by_constructor = ( P... ) -> MULTIMIX.COPIERS.by_constructor P...
-  dont_copy           = ( P... ) -> MULTIMIX.COPIERS.dont           P...
-  #.........................................................................................................
-  MULTIMIX.type_descriptions =
-    #.........................................................................................................
-    boolean:     { type: 'boolean',       has_fields: no,  copy: copy_id,                 }
-    null:        { type: 'null',          has_fields: no,  copy: copy_id,                 }
-    text:        { type: 'text',          has_fields: no,  copy: copy_id,                 }
-    undefined:   { type: 'undefined',     has_fields: no,  copy: copy_id,                 }
-    infinity:    { type: 'infinity',      has_fields: no,  copy: copy_id,                 }
-    number:      { type: 'number',        has_fields: no,  copy: copy_id,                 }
-    nan:         { type: 'nan',           has_fields: no,  copy: copy_id,                 }
-    #.........................................................................................................
-    pod:         { type: 'pod',           has_fields: yes, copy: copy_object,             }
-    list:        { type: 'list',          has_fields: yes, copy: copy_list,               }
-    map:         { type: 'map',           has_fields: yes, copy: copy_map,                }
-    set:         { type: 'set',           has_fields: yes, copy: copy_set,                }
-    #.........................................................................................................
-    date:        { type: 'date',          has_fields: yes, copy: copy_by_constructor,     }
-    regex:       { type: 'regex',         has_fields: yes, copy: copy_by_constructor,     }
-    #.........................................................................................................
-    buffer:      { type: 'buffer',        has_fields: yes, copy: dont_copy,               }
-    arraybuffer: { type: 'arraybuffer',   has_fields: yes, copy: dont_copy,               }
-    error:       { type: 'error',         has_fields: yes, copy: dont_copy,               }
-    function:    { type: 'function',      has_fields: yes, copy: dont_copy,               }
-    symbol:      { type: 'symbol',        has_fields: no,  copy: dont_copy,               }
-    #.........................................................................................................
-    # These do not work at the time being:
-    weakmap:     { type: 'weakmap',       has_fields: no,  copy: dont_copy,               }
-    generator:   { type: 'generator',     has_fields: no,  copy: dont_copy,               }
-    arguments:   { type: 'arguments',     has_fields: no,  copy: dont_copy,               }
-    global:      { type: 'global',        has_fields: no,  copy: dont_copy,               }
-
-#-----------------------------------------------------------------------------------------------------------
-MULTIMIX.type_descriptions[ σ_unknown_type ] =
-  type:       σ_unknown_type
-  has_fields: no
-  copy:       MULTIMIX.COPIERS.dont
 
 
 #===========================================================================================================
@@ -197,7 +111,7 @@ MULTIMIX.use = ( custom_reducers... ) ->
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-module.exports = { mix: MULTIMIX.use(), }
+# module.exports = { mix: MULTIMIX.use(), }
 
 
 

@@ -426,6 +426,47 @@ These do not work at the time being:
   #.........................................................................................................
   return null
 
+#-----------------------------------------------------------------------------------------------------------
+@[ "raw copying" ] = ( T ) ->
+  σ_unknown_type  = Symbol.for 'unknown_type'
+  L               = require './copiers'
+  #.........................................................................................................
+  raw_copy = ( x ) ->
+    type          = CND.type_of x
+    description   = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
+    { has_fields
+      copy      } = description
+    return copy.call L, x
+  #.........................................................................................................
+  primitive_value_probes = [
+    null
+    undefined
+    true
+    false
+    123
+    +Infinity
+    -Infinity
+    'abcdef'
+    # Symbol.for 'key'
+    ]
+  #.........................................................................................................
+  constructor_probes = [
+    /^xa*$/g
+    new Date '1983-06-01'
+    ]
+  #.........................................................................................................
+  for probe in primitive_value_probes
+    # debug ( rpr probe ), rpr raw_copy probe
+    T.ok probe is raw_copy probe
+  #.........................................................................................................
+  for probe in constructor_probes
+    # debug ( rpr probe ), rpr raw_copy probe
+    result = raw_copy probe
+    T.eq probe,     result
+    T.ok probe isnt result
+  #.........................................................................................................
+  return null
+
 
 ############################################################################################################
 unless module.parent?
@@ -440,8 +481,9 @@ unless module.parent?
     # "`mix` leaves functions as-is"
     # "`mix.deep_copy` invariances and identities"
     # "test copying samples"
-    "copying primitive values"
+    # "copying primitive values"
     # "simple copying"
+    "raw copying"
     ]
   @_prune()
   @_main()
