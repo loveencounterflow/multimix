@@ -81,15 +81,18 @@ These do not work at the time being:
     primes:       [ 2, 3, 5, 7, ]
     report:       -> t { @id, @primes, }
   #.........................................................................................................
-  my_mix  = mix.use fields: { primes: 'append' }
-  b       = my_mix a, { id: 'b', primes: [ 13, 17, 23, ], }
+  b =
+    id:           'b'
+    primes:       [ 13, 17, 23, ]
+  #.........................................................................................................
+  c = ( mix.use fields: { primes: 'append' } ) a, b
   #.........................................................................................................
   T.eq a[ 'primes' ], [2,3,5,7]
-  T.eq b[ 'primes' ], [2,3,5,7,13,17,23]
+  T.eq c[ 'primes' ], [2,3,5,7,13,17,23]
   T.eq a.report(), '{"id":"a","primes":[2,3,5,7]}'
-  T.eq b.report(), '{"id":"b","primes":[2,3,5,7,13,17,23]}'
-  debug '70200', JSON.stringify a
-  debug '70200', JSON.stringify b
+  T.eq c.report(), '{"id":"b","primes":[2,3,5,7,13,17,23]}'
+  # debug '70200', JSON.stringify a
+  # debug '70200', JSON.stringify c
   #.........................................................................................................
   return null
 
@@ -142,7 +145,9 @@ These do not work at the time being:
       bar:      3
     speed:      100
     weight:     456
-    tags:       [ 'alpha', 'beta', 'gamma', 'delta', ]
+    foo:
+      bar:
+        tags:       [ 'alpha', 'beta', 'gamma', 'delta', ]
     fruit:      'banana'
   #.........................................................................................................
   options_user =
@@ -157,24 +162,29 @@ These do not work at the time being:
       supercalifragilistic: 20
     speed:            50
     weight:           123
-    tags:             [ '-alpha', 'beta', 'gamma', 'epsilon', ]
+    foo:
+      bar:
+        tags:             [ '-alpha', 'beta', 'epsilon', ]
     fruit:            'pineapple'
   #.........................................................................................................
-  reducers =
-    primes:           'append'
-    words:            'merge'
-    speed:            'average'
-    weight:           'add'
-    'to-be-skipped':  'skip'
-    tags:             'tag'
-    fruit:            'list'
-    zoom:             ( zoom_percentages ) ->
-      R = 1
-      for percentage in zoom_percentages
-        R *= ( parseFloat percentage ) / 100
-      return "#{( R * 100 ).toFixed 2}%"
+  recipe =
+    fields:
+      primes:           'append'
+      words:            'merge'
+      speed:            'average'
+      weight:           'add'
+      'to-be-skipped':  'skip'
+      foo:
+        bar:
+          tags:             'tag'
+      fruit:            'list'
+      zoom:             ( zoom_percentages ) ->
+        R = 1
+        for percentage in zoom_percentages
+          R *= ( parseFloat percentage ) / 100
+        return "#{( R * 100 ).toFixed 2}%"
   #.........................................................................................................
-  mix_options = mix.use reducers
+  mix_options = mix.use recipe
   options     = mix_options options_base, options_user
   # urge '5543', options
   T.ok options[ 'paths'         ] is options_base[ 'paths' ]
@@ -184,13 +194,17 @@ These do not work at the time being:
   T.eq options[ 'words'         ], { foo: 3, bar: 3, supercalifragilistic: 20 }
   T.eq options[ 'speed'         ], 75
   T.eq options[ 'weight'        ], 579
-  T.eq options[ 'tags'          ], [ 'delta', 'beta', 'gamma', 'epsilon', ]
   T.eq options[ 'only-here'     ], yes
   T.eq options[ 'to-be-skipped' ], undefined
   T.eq options[ 'fruit'         ], [ 'banana', 'pineapple', ]
+  debug '30200', options_base[ 'foo' ][ 'bar' ][ 'tags' ]
+  debug '30200', options_user[ 'foo' ][ 'bar' ][ 'tags' ]
+  debug '30200', options[      'foo' ][ 'bar' ][ 'tags' ]
+  T.eq options[ 'foo' ][ 'bar' ][ 'tags' ], [ 'delta', 'beta', 'gamma', 'epsilon', ]
   #.........................................................................................................
   return null
 
+###
 #-----------------------------------------------------------------------------------------------------------
 @[ "options example (3)" ] = ( T ) ->
   #.........................................................................................................
@@ -219,9 +233,10 @@ These do not work at the time being:
   T.eq options, {"paths":{"app":"~/sample","fonts":"~/.fonts"},"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}}}
   #.........................................................................................................
   return null
+###
 
 #-----------------------------------------------------------------------------------------------------------
-@[ "options example with nested reducers" ] = ( T ) ->
+@[ "options example with nested recipe" ] = ( T ) ->
   #.........................................................................................................
   options_base =
     paths:
@@ -242,24 +257,25 @@ These do not work at the time being:
       beta:
         gamma:    108
   #.........................................................................................................
-  reducers =
-    fonts:
-      files:      'merge'
-    foo:
-      bar:
-        baz:      ( values, S ) -> S.path
-    alpha:
-      beta:
-        gamma:    ( values, S ) -> S.path
+  recipe =
+    fields:
+      fonts:
+        files:      'merge'
+      foo:
+        bar:
+          baz:      ( values, S ) -> S.path
+      alpha:
+        beta:
+          gamma:    ( values, S ) -> S.path
   #.........................................................................................................
-  options = ( mix.use reducers ) options_base, options_user
+  options = ( mix.use recipe ) options_base, options_user
   # urge '7631', t options
   T.eq options, {"fonts":{"files":{"Arial":"HelveticaNeue.ttf","ComicSans":"MSComicSans.ttf"}},"foo":{"bar":{"baz":"foo/bar/baz"}},"alpha":{"beta":{"gamma":"alpha/beta/gamma"}},"paths":{"app":"~/sample","fonts":"~/.fonts"}}
   #.........................................................................................................
   return null
 
 #-----------------------------------------------------------------------------------------------------------
-@[ "unused reducers must not cause entry" ] = ( T ) ->
+@[ "unused recipe must not cause entry" ] = ( T ) ->
   #.........................................................................................................
   options_base =
     foo:
@@ -271,7 +287,7 @@ These do not work at the time being:
       files:
         'ComicSans':  'MSComicSans.ttf'
   #.........................................................................................................
-  reducers =
+  recipe =
     foo:
       bar:
         baz:      ( values, S ) -> S.path
@@ -282,7 +298,7 @@ These do not work at the time being:
     qplah:
       gagh:       'append'
   #.........................................................................................................
-  options = ( mix.use reducers ) options_base, options_user
+  options = ( mix.use recipe ) options_base, options_user
   # urge '7631', t options
   T.eq options, {"foo":{"bar":{"baz":"foo/bar/baz"}},"fonts":{"files":{"ComicSans":"MSComicSans.ttf"}}}
   #.........................................................................................................
@@ -404,7 +420,7 @@ These do not work at the time being:
   #.........................................................................................................
   my_seed = new Set()
   #.........................................................................................................
-  reducers =
+  recipe =
     # seed:     -> d = new Set()
     seed:     my_seed
     # before:   ( P... ) -> debug '33262-before', P
@@ -415,7 +431,7 @@ These do not work at the time being:
       # '':       ( P... ) -> debug P
       primes:   'append'
   #.........................................................................................................
-  debug '39302', data_ng = ( mix.use reducers ) data_og_0, data_og_1
+  debug '39302', data_ng = ( mix.use recipe ) data_og_0, data_og_1
   T.ok data_ng is my_seed
   #.........................................................................................................
   return null
@@ -479,17 +495,17 @@ unless module.parent?
   # debug '0980', JSON.stringify ( Object.keys @ ), null, '  '
   include = [
     "demo (1)"
-    # "options example (1)"
-    # "options example (2)"
-    # "options example (3)"
-    # "options example with nested reducers"
-    # "unused reducers must not cause entry"
-    # "`mix` leaves functions as-is"
-    # "`mix.deep_copy` invariances and identities"
-    # "test copying samples"
-    # "copying primitive values"
-    # "simple copying"
-    # "raw copying"
+    "options example (1)"
+    "options example (2)"
+    "options example (3)"
+    "options example with nested recipe"
+    "unused recipe must not cause entry"
+    "`mix` leaves functions as-is"
+    "`mix.deep_copy` invariances and identities"
+    "test copying samples"
+    "copying primitive values"
+    "simple copying"
+    "raw copying"
     ]
   @_prune()
   @_main()

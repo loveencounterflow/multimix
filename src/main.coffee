@@ -49,19 +49,22 @@ MULTIMIX.mix = ( mixins, recipe, root = null, selector = [] ) ->
   # for mixin, mixin_idx in mixins
   #   mixins[ mixin_idx ] = { '': mixin, }
   #.........................................................................................................
+  ### TAINT this part needs to be rewritten ###
   ### Deal with nested recipe first: ###
   if ( fields = S.recipe[ 'fields' ] )?
     for field_key, field_value of fields
-      if CND.isa_pod field_value
-        selector.push field_key
-        partial_mixins = []
-        for mixin in mixins
-          partial_mixin = mixin[ field_key ]
-          partial_mixins.push partial_mixin if partial_mixin?
-        if partial_mixins.length > 0
-          S.seed[ field_key ] = MULTIMIX.mix partial_mixins, field_value, root, selector
-        recipe[ field_key ]  = 'skip'
-        selector.pop field_key
+      continue unless CND.isa_pod field_value
+      selector.push field_key
+      partial_mixins = ( mixin[ field_key ] for mixin in mixins when mixin[ field_key ] )
+      # partial_mixins = []
+      # for mixin in mixins
+      #   partial_mixin = mixin[ field_key ]
+      #   partial_mixins.push partial_mixin if partial_mixin?
+      if partial_mixins.length > 0
+        # debug '30211', selector, field_value, partial_mixins
+        S.seed[ field_key ] = MULTIMIX.mix partial_mixins, field_value, root, selector
+      S.recipe[ field_key ] = 'skip'
+      selector.pop field_key
   #.........................................................................................................
   ### Process unnested recipe: ###
   for mixin in mixins
@@ -70,11 +73,12 @@ MULTIMIX.mix = ( mixins, recipe, root = null, selector = [] ) ->
       S.path          = join selector..., mx_key
       S.root          = root
       S.current       = S.seed
-      S.reducer_name  = S.recipe[ 'fields' ]?[ mx_key ] ? S.reducer_fallback
+      S.recipe_name   = S.recipe[ 'fields' ]?[ mx_key ] ? S.recipe_fallback
+      continue if CND.isa_pod S.recipe_name
       continue if MULTIMIX.RECIPES[ σ_reject ] S, mx_key, mx_value
-      unless ( reducer = MULTIMIX.RECIPES[ S.reducer_name ] )?
-        throw new Error "unknown reducer #{rpr S.reducer_name}"
-      reducer.call MULTIMIX.RECIPES, S, mx_key, mx_value
+      unless ( recipe = MULTIMIX.RECIPES[ S.recipe_name ] )?
+        throw new Error "unknown recipe #{rpr S.recipe_name}"
+      recipe.call MULTIMIX.RECIPES, S, mx_key, mx_value
   #.........................................................................................................
   MULTIMIX.RECIPES[ σ_finalize ] S
   #.........................................................................................................

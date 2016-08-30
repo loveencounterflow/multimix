@@ -25,15 +25,14 @@ TOOLS                     = require './tools'
 #
 #-----------------------------------------------------------------------------------------------------------
 @[ σ_new_state ] = ( recipe, mixins ) ->
-  debug '60311', recipe
   S                   = {}
   S.recipe            = if recipe? then ( CND.deep_copy recipe ) else {}
   S.mixins            = mixins
-  S.reducer_fallback  = S.recipe[ 'fallback' ] ? 'assign'
+  S.recipe_fallback   = S.recipe[ 'fallback' ] ? 'assign'
   #.........................................................................................................
   S.cache             = {}
   S.averages          = {}
-  S.tag_keys          = ( key for key, value of S.recipe when value is 'tag' )
+  S.tag_keys          = []
   # S.skip              = new Set()
   S.functions         = {}
   S.path              = null
@@ -44,7 +43,10 @@ TOOLS                     = require './tools'
   if ( fields = S.recipe[ 'fields' ] )?
     for key, reducer of fields
       if reducer is 'include'
-        fields[ key ] = S.reducer_fallback
+        fields[ key ] = S.recipe_fallback
+        continue
+      if reducer is 'tag'
+        S.tag_keys.push key
         continue
       if CND.isa_function reducer
         S.functions[  key ] = reducer
@@ -64,7 +66,6 @@ TOOLS                     = require './tools'
     S.current[ key ] = sum / count
   #.........................................................................................................
   ### functions ###
-  help '50332', 'σ_finalize'
   for key, values of S.cache
     unless CND.isa_function ( method = S.functions[ key ] )
       throw new Error "not a function for key #{rpr key}: #{rpr method}"
@@ -74,8 +75,8 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @[ σ_reject ] = ( S, key, value ) ->
-  # return ( S.skip.has key ) or ( value is undefined and S.reducer_name isnt 'assign' )
-  return value is undefined and S.reducer_name isnt 'assign'
+  # return ( S.skip.has key ) or ( value is undefined and S.recipe_name isnt 'assign' )
+  return value is undefined and S.recipe_name isnt 'assign'
 
 
 #===========================================================================================================
@@ -123,6 +124,7 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @tag = ( S, key, value ) ->
+  urge '22310', key, value
   TOOLS.meld ( target = S.current[ key ] ?= [] ), value
   return null
 
