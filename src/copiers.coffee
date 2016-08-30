@@ -25,10 +25,6 @@ COPIERS                   = @
 @RAW = {}
 
 #-----------------------------------------------------------------------------------------------------------
-@RAW.id = ( x ) ->
-  return x
-
-#-----------------------------------------------------------------------------------------------------------
 @RAW.object = ( x, seed ) ->
   ### shamelessly copied from https://github.com/nrn/universal-copy ###
   R = seed ? Object.create Object.getPrototypeOf x
@@ -45,6 +41,7 @@ COPIERS                   = @
   return R
 
 #-----------------------------------------------------------------------------------------------------------
+@RAW.id   = ( x ) -> x
 @RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
 # @RAW.list = ( x ) -> @object x, new Array x.length
 @RAW.list = ( x ) -> []

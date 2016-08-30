@@ -3,7 +3,7 @@
 ############################################################################################################
 CND                       = require 'cnd'
 rpr                       = CND.rpr
-badge                     = 'MULTIMIX/REDUCERS'
+badge                     = 'MULTIMIX/RECIPES'
 log                       = CND.get_logger 'plain',     badge
 info                      = CND.get_logger 'info',      badge
 whisper                   = CND.get_logger 'whisper',   badge
@@ -24,15 +24,16 @@ TOOLS                     = require './tools'
 #===========================================================================================================
 #
 #-----------------------------------------------------------------------------------------------------------
-@[ σ_new_state ] = ( reducers, mixins ) ->
+@[ σ_new_state ] = ( recipe, mixins ) ->
+  debug '60311', recipe
   S                   = {}
-  S.reducers          = reducers ? {}
+  S.recipe            = if recipe? then ( CND.deep_copy recipe ) else {}
   S.mixins            = mixins
-  S.reducer_fallback  = S.reducers[ '*' ] ? 'assign'
+  S.reducer_fallback  = S.recipe[ 'fallback' ] ? 'assign'
   #.........................................................................................................
   S.cache             = {}
   S.averages          = {}
-  S.tag_keys          = ( key for key, value of S.reducers when value is 'tag' )
+  S.tag_keys          = ( key for key, value of S.recipe when value is 'tag' )
   # S.skip              = new Set()
   S.functions         = {}
   S.path              = null
@@ -40,14 +41,7 @@ TOOLS                     = require './tools'
   S.current           = null
   S.seen              = new Map()
   #.........................................................................................................
-  ### TAINT presently the reducers namespace has mixin keys as keys except for the special
-  key '*'. This severly restricts the expressiveness of the configuration. Solutions:
-  * move mixin keys to a segregated object
-  * use sigils like '~' or syntax like '<type>' for special keys
-  * reserve one other special key for all special keys
-  ###
-  #.........................................................................................................
-  if ( fields = S.reducers[ 'fields' ] )?
+  if ( fields = S.recipe[ 'fields' ] )?
     for key, reducer of fields
       if reducer is 'include'
         fields[ key ] = S.reducer_fallback
@@ -70,7 +64,7 @@ TOOLS                     = require './tools'
     S.current[ key ] = sum / count
   #.........................................................................................................
   ### functions ###
-  help '50332', S
+  help '50332', 'σ_finalize'
   for key, values of S.cache
     unless CND.isa_function ( method = S.functions[ key ] )
       throw new Error "not a function for key #{rpr key}: #{rpr method}"
@@ -85,7 +79,7 @@ TOOLS                     = require './tools'
 
 
 #===========================================================================================================
-# REDUCERS
+# RECIPES
 #-----------------------------------------------------------------------------------------------------------
 @assign = ( S, key, value ) ->
   if value is undefined then delete S.current[ key ]

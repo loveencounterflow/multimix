@@ -76,26 +76,20 @@ These do not work at the time being:
 #-----------------------------------------------------------------------------------------------------------
 @[ "demo (1)" ] = ( T ) ->
   #.........................................................................................................
-  test_tools = ( T, x ) ->
-    return T.fail "object has no property 'TOOLS'" unless x.TOOLS?
-    T.ok CND.is_subset [ 'normalize_tag', 'unique', 'append', 'meld', ], ( Object.keys x.TOOLS )
-    return null
-  #.........................................................................................................
-  test_tools T, mix
-  my_mix = mix.use { primes: 'append' }
-  test_tools T, my_mix
-  #.........................................................................................................
   a =
     id:           'a'
     primes:       [ 2, 3, 5, 7, ]
     report:       -> t { @id, @primes, }
   #.........................................................................................................
-  b = my_mix a, { id: 'b', primes: [ 13, 17, 23, ], }
+  my_mix  = mix.use fields: { primes: 'append' }
+  b       = my_mix a, { id: 'b', primes: [ 13, 17, 23, ], }
   #.........................................................................................................
   T.eq a[ 'primes' ], [2,3,5,7]
   T.eq b[ 'primes' ], [2,3,5,7,13,17,23]
   T.eq a.report(), '{"id":"a","primes":[2,3,5,7]}'
   T.eq b.report(), '{"id":"b","primes":[2,3,5,7,13,17,23]}'
+  debug '70200', JSON.stringify a
+  debug '70200', JSON.stringify b
   #.........................................................................................................
   return null
 
@@ -484,7 +478,7 @@ These do not work at the time being:
 unless module.parent?
   # debug '0980', JSON.stringify ( Object.keys @ ), null, '  '
   include = [
-    # "demo (1)"
+    "demo (1)"
     # "options example (1)"
     # "options example (2)"
     # "options example (3)"
@@ -495,7 +489,7 @@ unless module.parent?
     # "test copying samples"
     # "copying primitive values"
     # "simple copying"
-    "raw copying"
+    # "raw copying"
     ]
   @_prune()
   @_main()
