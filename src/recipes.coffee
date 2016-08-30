@@ -124,7 +124,6 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @tag = ( S, key, value ) ->
-  urge '22310', key, value
   TOOLS.meld ( target = S.current[ key ] ?= [] ), value
   return null
 
