@@ -31,3 +31,10 @@ features, period.
 
 
  -->
+
+ ## ToDo
+
+ * [ ] implement 'proxying inheritance' using proxies instead of prototypes to forward functionality, data
+
+
+
