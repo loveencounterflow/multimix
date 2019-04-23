@@ -14,4 +14,6 @@ An ES6 `class` with some metaprogramming capabilities:
   object destructuring).
 
 
+Implementation was inspired by / copy-pasted from [Chapter 3 of *The Little Book on
+CoffeeScript*](https://arcturo.github.io/library/coffeescript/03_classes.html).
 
