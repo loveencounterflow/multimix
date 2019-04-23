@@ -17,3 +17,21 @@ An ES6 `class` with some metaprogramming capabilities:
 Implementation was inspired by / copy-pasted from [Chapter 3 of *The Little Book on
 CoffeeScript*](https://arcturo.github.io/library/coffeescript/03_classes.html).
 
+## Links
+
+* [jeremyckahn/inherit-by-proxy.js](https://gist.github.com/jeremyckahn/5552373)
+* [JS Objects: Distractions](https://davidwalsh.name/javascript-objects-distractions)
+* [JS Objects: De"construct"ion](https://davidwalsh.name/javascript-objects-deconstruction)
+
+## Motivation
+
+"JavaScript's prototypal inheritance is vastyl simpler than Classical OOP"<sup>*[citation needed]*</sup>.
+
+[Is it](https://davidwalsh.name/javascript-objects-deconstruction)?
+
+![](https://raw.githubusercontent.com/loveencounterflow/multimix/master/artwork/JavaScriptObjects--Full.png)
+
+
+
+
+
