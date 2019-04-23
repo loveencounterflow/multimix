@@ -46,7 +46,7 @@ class Multimix
     R = {}
     for k, v of @
       continue unless v?.bind?
-      if ( v[ isa_keymethod_proxy ] ? false )
+      if ( v[ Multimix.isa_keymethod_proxy ] ? false )
         R[ k ] = Multimix.get_keymethod_proxy @, v
       else
         R[ k ] = v.bind @
@@ -61,7 +61,7 @@ class Multimix
         return target[ key ] if key in [ 'bind', ] # ... other properties ...
         return target[ key ] if ( Multimix.js_type_of key ) is 'symbol'
         return ( xP... ) -> target key, xP...
-    R[ isa_keymethod_proxy ] = true
+    R[ Multimix.isa_keymethod_proxy ] = true
     return R
 
   #=========================================================================================================
