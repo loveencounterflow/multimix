@@ -18,10 +18,35 @@ CoffeeScript*](https://arcturo.github.io/library/coffeescript/03_classes.html).
 
 ## Usage
 
-Have a look at [the demo]():
+Have a look at [the
+demo](https://github.com/loveencounterflow/multimix/blob/master/src/experiments/demo.coffee):
+
+* `class X extends Multimix` gives you a class with the following static methods inherited through
+  `Multimix`:
+
+  *  `<class>.extend: ( object ) ->`—extends class with the properties of `object` (class-level mixin).
+  *  `<class>.include: ( object ) ->`—extends instances with the properties of `object` (instance-level
+     mixin).
+  *  `<class>.get_keymethod_proxy = ( bind_target, f ) ->`—produces an instance method `f` which will
+     translate calls from immediate attributes (as in, `f.some_text some_value`) to calls to `f` proper,
+     using the attribute name as first argument: `f some_text, some_value`. I needed this for a specific
+     purpose and included the code as a demo how to implement such a thing.
+  *  `export_methods: ->`—when called on an instance, returns an object with bound instance methods; this
+     allows to 'export' instance methods into a namespace without fearing 'JavaScript method tear-off
+     symptome':
+
+     ```coffee
+     my_instance = new My_class
+     { method_a
+       method_b } = my_instance.export_methods()
+     # now you can use `method_a`, `method_b` without prefixing them with `my_instance`:
+     method_a 42
+     ```
+
+Code:
 
 ```coffee
-Multimix = require '../..'
+Multimix = require 'multimix'
 
 #=========================================================================================================
 # SAMPLE OBJECTS WITH INSTANCE METHODS, STATIC METHODS
@@ -64,6 +89,22 @@ class Intertype extends Multimix
   @base_types =
     foo: 'spec for type foo'
     bar: 'spec for type bar'
+
+##########################################################################################################
+intertype_1 = new Intertype
+intertype_2 = new Intertype
+
+info 'µ002-1', Intertype.base_types
+info 'µ002-2', intertype_1.declare 'new_on_it1', 'a new hope'
+info 'µ002-3', 'intertype_1.specs', intertype_1.specs
+info 'µ002-4', 'intertype_2.specs', intertype_2.specs
+info 'µ002-5', intertype_1.isa 'new_on_it1', 1, 2, 3
+info 'µ002-6', intertype_1.isa.new_on_it1    1, 2, 3
+info 'µ002-7', intertype_2.isa 'new_on_it1', 1, 2, 3
+info 'µ002-8', intertype_2.isa.new_on_it1    1, 2, 3
+{ isa, declare, } = intertype_1.export_methods()
+info 'µ002-9', isa 'new_on_it1', 1, 2, 3
+info 'µ002-10', isa.new_on_it1    1, 2, 3
 ```
 
 
