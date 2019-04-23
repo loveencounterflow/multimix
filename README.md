@@ -25,8 +25,8 @@ CoffeeScript*](https://arcturo.github.io/library/coffeescript/03_classes.html).
 
 ## Motivation
 
-"JavaScript's prototypal inheritance is vastly simpler than class-based, 'classical' OOP"&nbsp;<sup>*[citation
-needed]*</sup>.
+"JavaScript's prototypal inheritance is vastly simpler than class-based, 'classical' OOP".&nbsp;<sup>*[citation
+needed]*</sup>
 
 [Is it](https://davidwalsh.name/javascript-objects-deconstruction)?
 
