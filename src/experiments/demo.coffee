@@ -19,7 +19,6 @@ raw_example = ->
 
   ###
 
-  This example thx to https://arcturo.github.io/library/coffeescript/03_classes.html
 
   ###
 
