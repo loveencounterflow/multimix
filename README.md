@@ -31,9 +31,9 @@ demo](https://github.com/loveencounterflow/multimix/blob/master/src/experiments/
      translate calls from immediate attributes (as in, `f.some_text some_value`) to calls to `f` proper,
      using the attribute name as first argument: `f some_text, some_value`. I needed this for a specific
      purpose and included the code as a demo how to implement such a thing.
-  *  `export_methods: ->`—when called on an instance, returns an object with bound instance methods; this
-     allows to 'export' instance methods into a namespace without fearing 'JavaScript method tear-off
-     symptome':
+  *  `export: ( target = null ) ->`—when called on an instance, returns an object with bound instance
+     methods; this allows to 'export' instance methods into a namespace without fearing 'JavaScript method
+     tear-off symptome':
 
      ```coffee
      my_instance = new My_class
@@ -42,6 +42,8 @@ demo](https://github.com/loveencounterflow/multimix/blob/master/src/experiments/
      # now you can use `method_a`, `method_b` without prefixing them with `my_instance`:
      method_a 42
      ```
+
+     When argument `target` is given, methods will be attached on that object (overwriting existing ones).
 
 Code:
 
