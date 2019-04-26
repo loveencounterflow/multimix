@@ -45,7 +45,7 @@ rewritten_example = ->
       return @
 
     #-------------------------------------------------------------------------------------------------------
-    export_methods: ->
+    export: ->
       ### Return an object with methods, bound to the current instance. ###
       R = {}
       for k, v of @
@@ -127,7 +127,7 @@ rewritten_example = ->
   info 'µ002-6', intertype_1.isa.new_on_it1    1, 2, 3
   info 'µ002-7', intertype_2.isa 'new_on_it1', 1, 2, 3
   info 'µ002-8', intertype_2.isa.new_on_it1    1, 2, 3
-  { isa, declare, } = intertype_1.export_methods()
+  { isa, declare, } = intertype_1.export()
   info 'µ002-9', isa 'new_on_it1', 1, 2, 3
   info 'µ002-10', isa.new_on_it1    1, 2, 3
 
@@ -190,9 +190,12 @@ example_using_multimix = ->
   info 'µ002-6', intertype_1.isa.new_on_it1    1, 2, 3
   info 'µ002-7', intertype_2.isa 'new_on_it1', 1, 2, 3
   info 'µ002-8', intertype_2.isa.new_on_it1    1, 2, 3
-  { isa, declare, } = intertype_1.export_methods()
-  info 'µ002-9', isa 'new_on_it1', 1, 2, 3
+  target = {}
+  { isa, declare, } = intertype_1.export target
+  info 'µ002-9',  isa 'new_on_it1', 1, 2, 3
   info 'µ002-10', isa.new_on_it1    1, 2, 3
+  info 'µ002-11', target.isa 'new_on_it1', 1, 2, 3
+  info 'µ002-12', target.isa.new_on_it1    1, 2, 3
 
 
 ############################################################################################################

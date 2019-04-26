@@ -41,9 +41,9 @@ class Multimix
     return @
 
   #---------------------------------------------------------------------------------------------------------
-  export_methods: ->
+  export: ( target = null ) ->
     ### Return an object with methods, bound to the current instance. ###
-    R = {}
+    R = target ? {}
     for k, v of @
       continue unless v?.bind?
       if ( v[ Multimix.isa_keymethod_proxy ] ? false )
