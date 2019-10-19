@@ -26,15 +26,23 @@ module_keywords = [ 'extended', 'included', ]
 class Multimix
 
   #---------------------------------------------------------------------------------------------------------
-  @extend: ( object ) ->
+  @extend: ( object, settings = null ) ->
+    ### TAINT code duplication ###
+    settings = { { overwrite: true, }..., ( settings ? null )..., }
     for key, value of object when key not in module_keywords
+      if ( not settings.overwrite ) and ( @::[ key ]? or @[ key ]? )
+        throw new Error "^multimix/include@5684 overwrite set to false but name already set: #{rpr key}"
       @[ key ] = value
     object.extended?.apply @
     return @
 
   #---------------------------------------------------------------------------------------------------------
-  @include: ( object ) ->
+  @include: ( object, settings = null ) ->
+    ### TAINT code duplication ###
+    settings = { { overwrite: true, }..., ( settings ? null )..., }
     for key, value of object when key not in module_keywords
+      if ( not settings.overwrite ) and ( @::[ key ]? or @[ key ]? )
+        throw new Error "^multimix/include@5683 overwrite set to false but name already set: #{rpr key}"
       # Assign properties to the prototype
       @::[ key ] = value
     object.included?.apply @

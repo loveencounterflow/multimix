@@ -80,7 +80,6 @@ rewritten_example = ->
   object_with_instance_properties =
     save: -> info "instance method 'save()'", ( k for k of @ )
 
-
   #=========================================================================================================
   js_type_of = ( x ) -> return ( ( Object::toString.call x ).slice 8, -1 ).toLowerCase()
   isa_keymethod_proxy = Symbol 'proxy'
@@ -145,6 +144,7 @@ example_using_multimix = ->
   #---------------------------------------------------------------------------------------------------------
   object_with_instance_properties =
     save: -> info "instance method 'save()'", ( k for k of @ )
+    find: -> info "instance method 'find()'", ( k for k of @ )
 
   #=========================================================================================================
   # CLASS DECLARATION
@@ -157,8 +157,8 @@ example_using_multimix = ->
 
   #---------------------------------------------------------------------------------------------------------
   class Intertype extends Multimix
-    @extend   object_with_class_properties
-    @include  object_with_instance_properties
+    @extend   object_with_class_properties,     { overwrite: true, }
+    @include  object_with_instance_properties,  { overwrite: true, }
 
     #-------------------------------------------------------------------------------------------------------
     constructor: ( @instance_name ) ->
@@ -179,7 +179,8 @@ example_using_multimix = ->
 
 
   ##########################################################################################################
-  intertype_1 = new Intertype
+  target      = {}
+  intertype_1 = new Intertype target
   intertype_2 = new Intertype
 
   info 'µ002-1', Intertype.base_types
@@ -196,6 +197,46 @@ example_using_multimix = ->
   info 'µ002-10', isa.new_on_it1    1, 2, 3
   info 'µ002-11', target.isa 'new_on_it1', 1, 2, 3
   info 'µ002-12', target.isa.new_on_it1    1, 2, 3
+  info 'µ002-13', intertype_1.find()
+  info 'µ002-14', intertype_2.find()
+  debug target
+  debug intertype_2
+
+
+#-----------------------------------------------------------------------------------------------------------
+example_for_overwrite_false = ->
+  Multimix = require '../..'
+
+  #=========================================================================================================
+  # SAMPLE OBJECTS WITH INSTANCE METHODS, STATIC METHODS
+  #---------------------------------------------------------------------------------------------------------
+  object_with_class_properties =
+    find:   ( id    ) -> info "class method 'find()'", ( k for k of @ )
+    create: ( attrs ) -> info "class method 'create()'", ( k for k of @ )
+
+  #---------------------------------------------------------------------------------------------------------
+  object_with_instance_properties =
+    save: -> info "instance method 'save()'", ( k for k of @ )
+    find: -> info "instance method 'find()'", ( k for k of @ )
+
+  #=========================================================================================================
+  # CLASS DECLARATION
+  #---------------------------------------------------------------------------------------------------------
+  isa = ( type, xP... ) ->
+    ### NOTE realistic method should throw error when `type` not in `specs` ###
+    urge "µ1129 object #{rpr @instance_name} isa #{rpr type} called with #{rpr xP}"
+    urge "µ1129 my @specs: #{rpr @specs}"
+    urge "µ1129 spec for type #{rpr type}: #{rpr @specs[ type ]}"
+
+  #---------------------------------------------------------------------------------------------------------
+  try
+    class Intertype extends Multimix
+      @extend   object_with_class_properties,     { overwrite: false, }
+      @include  object_with_instance_properties,  { overwrite: false, }
+    # intertype = new Intertype()
+  catch error
+    warn error.message
+  return null
 
 
 ############################################################################################################
@@ -203,4 +244,5 @@ unless module.parent?
   # raw_example()
   # rewritten_example()
   example_using_multimix()
+  example_for_overwrite_false()
 
