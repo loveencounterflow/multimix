@@ -24,9 +24,10 @@ demo](https://github.com/loveencounterflow/multimix/blob/master/src/experiments/
 * `class X extends Multimix` gives you a class with the following static methods inherited through
   `Multimix`:
 
-  *  `<class>.extend: ( object ) ->`—extends class with the properties of `object` (class-level mixin).
-  *  `<class>.include: ( object ) ->`—extends instances with the properties of `object` (instance-level
-     mixin).
+  *  `<class>.extend: ( object, settings = null ) ->`—extends class with the properties of `object`
+     (class-level mixin).
+  *  `<class>.include: ( object, settings = null ) ->`—extends instances with the properties of `object`
+     (instance-level mixin).
   *  `<class>.get_keymethod_proxy = ( bind_target, f ) ->`—produces an instance method `f` which will
      translate calls from immediate attributes (as in, `f.some_text some_value`) to calls to `f` proper,
      using the attribute name as first argument: `f some_text, some_value`. I needed this for a specific
@@ -44,6 +45,9 @@ demo](https://github.com/loveencounterflow/multimix/blob/master/src/experiments/
      ```
 
      When argument `target` is given, methods will be attached on that object (overwriting existing ones).
+
+  * When `extend()` or `include()` are used with `settings` as ` { overwrite: false, }`, an error will
+    be raised during class definition time when any name clashes are detected.
 
 Code:
 
