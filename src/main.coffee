@@ -53,8 +53,9 @@ class Multimix
     ### Return an object with methods, bound to the current instance. ###
     R = target ? {}
     for k, v of @
-      continue unless v?.bind?
-      if ( v[ Multimix.isa_keymethod_proxy ] ? false )
+      unless v?.bind?
+        R[ k ] = v
+      else if ( v[ Multimix.isa_keymethod_proxy ] ? false )
         R[ k ] = Multimix.get_keymethod_proxy @, v
       else
         R[ k ] = v.bind @
