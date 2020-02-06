@@ -27,9 +27,9 @@
   "author": "loveencounterflow",
   "license": "MIT",
   "devDependencies": {
-    "guy-test": "^1.4.1"
+    "guy-test": "^1.4.2"
   },
   "dependencies": {
-    "cnd": "^4.6.0"
+    "cnd": "^5.3.0"
   }
 }
