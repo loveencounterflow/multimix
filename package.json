@@ -28,6 +28,7 @@
     "guy-test": "^1.4.2"
   },
   "dependencies": {
-    "cnd": "^5.3.0"
+    "cnd": "^5.3.0",
+    "intertype": "^3.1.1"
   }
 }
