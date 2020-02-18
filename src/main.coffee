@@ -12,9 +12,7 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
-types                     = new ( require 'intertype' ).Intertype()
-{ isa
-  type_of }               = types.export()
+types                     = null
 
 
 #===========================================================================================================
@@ -54,7 +52,8 @@ class Multimix
   #---------------------------------------------------------------------------------------------------------
   export: ( target = null ) ->
     ### Return an object with methods, bound to the current instance. ###
-    R = target ? {}
+    types  ?= new ( require 'intertype' ).Intertype()
+    R       = target ? {}
     for k from types.walk_all_keys_of @
       v = @[ k ]
       unless v?.bind?                                       then  R[ k ] = v
@@ -69,7 +68,7 @@ class Multimix
     R = new Proxy ( f.bind bind_target ),
       get: ( target, key ) ->
         return target[ key ] if key in [ 'bind', ] # ... other properties ...
-        return target[ key ] if isa.symbol key
+        return target[ key ] if ( typeof key ) is 'symbol'
         return ( xP... ) -> target key, xP...
     R[ Multimix.isa_keymethod_proxy ] = true
     return R
