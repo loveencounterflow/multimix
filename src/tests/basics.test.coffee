@@ -9,7 +9,7 @@ njs_path                  = require 'path'
 #...........................................................................................................
 CND                       = require 'cnd'
 rpr                       = CND.rpr.bind CND
-badge                     = 'INTERTYPE/tests/main'
+badge                     = 'MULTIMIX/TESTS/BASICS'
 log                       = CND.get_logger 'plain',     badge
 info                      = CND.get_logger 'info',      badge
 whisper                   = CND.get_logger 'whisper',   badge
