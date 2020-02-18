@@ -12,6 +12,9 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
+types                     = new ( require 'intertype' ).Intertype()
+{ isa
+  type_of }               = types.export()
 
 
 #===========================================================================================================
@@ -52,13 +55,11 @@ class Multimix
   export: ( target = null ) ->
     ### Return an object with methods, bound to the current instance. ###
     R = target ? {}
-    for k, v of @
-      unless v?.bind?
-        R[ k ] = v
-      else if ( v[ Multimix.isa_keymethod_proxy ] ? false )
-        R[ k ] = Multimix.get_keymethod_proxy @, v
-      else
-        R[ k ] = v.bind @
+    for k from types.walk_all_keys_of @
+      v = @[ k ]
+      unless v?.bind?                                       then  R[ k ] = v
+      else if ( v[ Multimix.isa_keymethod_proxy ] ? false ) then  R[ k ] = Multimix.get_keymethod_proxy @, v
+      else                                                        R[ k ] = v.bind @
     return R
 
   #=========================================================================================================
@@ -68,13 +69,13 @@ class Multimix
     R = new Proxy ( f.bind bind_target ),
       get: ( target, key ) ->
         return target[ key ] if key in [ 'bind', ] # ... other properties ...
-        return target[ key ] if ( Multimix.js_type_of key ) is 'symbol'
+        return target[ key ] if isa.symbol key
         return ( xP... ) -> target key, xP...
     R[ Multimix.isa_keymethod_proxy ] = true
     return R
 
   #=========================================================================================================
-  @js_type_of = ( x ) -> return ( ( Object::toString.call x ).slice 8, -1 ).toLowerCase()
+  # @js_type_of = ( x ) -> return ( ( Object::toString.call x ).slice 8, -1 ).toLowerCase()
   @isa_keymethod_proxy = Symbol 'proxy'
 
 
