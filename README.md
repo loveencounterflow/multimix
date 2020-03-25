@@ -1,3 +1,15 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [MultiMix](#multimix)
+  - [Usage](#usage)
+  - [Links](#links)
+  - [Motivation](#motivation)
+  - [To Do](#to-do)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 
 
 ![](https://raw.githubusercontent.com/loveencounterflow/multimix/master/artwork/multimix.png)
@@ -129,6 +141,12 @@ needed]*</sup>
 
 ![](https://raw.githubusercontent.com/loveencounterflow/multimix/master/artwork/JavaScriptObjects--Full.png)
 
+
+## To Do
+
+* [X] implement `get_my_prototype()`
+* [ ] document `get_my_prototype()` (allows to access methods of protoype even from methods that were
+  defined in a mixin object)
 
 
 
