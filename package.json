@@ -1,6 +1,6 @@
 {
   "name": "multimix",
-  "version": "2.2.1",
+  "version": "3.0.0",
   "description": "flexible object copying",
   "main": "lib/main.js",
   "scripts": {
