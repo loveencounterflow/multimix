@@ -25,6 +25,6 @@
   "license": "MIT",
   "dependencies": {
     "cnd": "^9.0.0",
-    "intertype": "^4.1.0"
+    "intertype": "^5.0.0"
   }
 }
