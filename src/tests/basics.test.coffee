@@ -91,7 +91,6 @@ test                      = require 'guy-test'
 #-----------------------------------------------------------------------------------------------------------
 @[ "multimix.export()" ] = ( T, done ) ->
   Multimix                  = require '../..'
-  types                     = new ( require 'intertype' ).Intertype()
   #.........................................................................................................
   class A extends Multimix
     constructor: -> super(); @name = 'class A'
