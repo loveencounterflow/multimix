@@ -25,10 +25,10 @@
   "author": "loveencounterflow",
   "license": "MIT",
   "devDependencies": {
-    "guy-test": "^2.0.1"
+    "guy-test": "^2.0.4"
   },
   "dependencies": {
-    "cnd": "^6.0.0",
-    "intertype": "^3.4.1"
+    "cnd": "^8.0.0",
+    "intertype": "^4.1.0"
   }
 }
