@@ -12,7 +12,6 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 info                      = CND.get_logger 'info',      badge
-types                     = null
 
 
 #===========================================================================================================
@@ -52,9 +51,8 @@ class Multimix
   #---------------------------------------------------------------------------------------------------------
   export: ( target = null ) ->
     ### Return an object with methods, bound to the current instance. ###
-    types  ?= new ( require 'intertype' ).Intertype()
     R       = target ? {}
-    for k from types.walk_all_keys_of @
+    for k from ( require './cataloguing' ).walk_all_keys_of @
       v = @[ k ]
       unless v?.bind?                                       then  R[ k ] = v
       else if ( v[ Multimix.isa_keymethod_proxy ] ? false ) then  R[ k ] = Multimix.get_keymethod_proxy @, v
