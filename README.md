@@ -4,6 +4,7 @@
 
 - [MultiMix](#multimix)
   - [Usage](#usage)
+    - [Methods](#methods)
   - [Links](#links)
   - [Motivation](#motivation)
   - [To Do](#to-do)
@@ -124,6 +125,12 @@ info 'µ002-8', intertype_2.isa.new_on_it1    1, 2, 3
 info 'µ002-9', isa 'new_on_it1', 1, 2, 3
 info 'µ002-10', isa.new_on_it1    1, 2, 3
 ```
+
+### Methods
+
+* **`@new ( P... ) ->`**—instances of derivatives of MultiMix have a method `new()` that returns a new
+  instances of the same class; `j = i.new settings` is just a shortcut for the not-so-obviously correct
+  incantation `j = new i.constructor settings`.
 
 
 ## Links
