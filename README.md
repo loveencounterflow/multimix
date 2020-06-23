@@ -130,7 +130,9 @@ info 'µ002-10', isa.new_on_it1    1, 2, 3
 
 * **`@new ( P... ) ->`**—instances of derivatives of MultiMix have a method `new()` that returns a new
   instances of the same class; `j = i.new settings` is just a shortcut for the not-so-obviously correct
-  incantation `j = new i.constructor settings`.
+  incantation `j = new i.constructor settings`. Sine the standard use case for classes derived from
+  `Multimix` is one-per-module libraries (that may or may not need or allow to be configured), it is
+  practical to have a standardized way to produce new library instances where called for.
 
 
 ## Links
