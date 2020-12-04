@@ -156,7 +156,8 @@ needed]*</sup>
 * [X] implement `get_my_prototype()`
 * [ ] document `get_my_prototype()` (allows to access methods of protoype even from methods that were
   defined in a mixin object)
-
+* [ ] can we use fat-arrow defs as in `method: ( x ) => ...` to produce bound methods? Should this become
+  standard, to be validated (at instantiation time)?
 
 
 
