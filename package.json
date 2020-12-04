@@ -22,8 +22,5 @@
     "mixin"
   ],
   "author": "loveencounterflow",
-  "license": "MIT",
-  "dependencies": {
-    "cnd": "^9.0.0"
-  }
+  "license": "MIT"
 }
