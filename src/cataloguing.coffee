@@ -1,25 +1,6 @@
 
 'use strict'
 
-############################################################################################################
-CND                       = require 'cnd'
-rpr                       = CND.rpr
-badge                     = 'MULTIMIX/CATALOGUING'
-debug                     = CND.get_logger 'debug',     badge
-alert                     = CND.get_logger 'alert',     badge
-whisper                   = CND.get_logger 'whisper',   badge
-warn                      = CND.get_logger 'warn',      badge
-help                      = CND.get_logger 'help',      badge
-urge                      = CND.get_logger 'urge',      badge
-info                      = CND.get_logger 'info',      badge
-{ assign
-  jr }                    = CND
-#...........................................................................................................
-{ inspect, }              = require 'util'
-# _xrpr                     = ( x ) -> inspect x, { colors: yes, breakLength: Infinity, maxArrayLength: Infinity, depth: Infinity, }
-# xrpr                      = ( x ) -> ( _xrpr x )[ .. 500 ]
-
-
 
 #===========================================================================================================
 # OBJECT PROPERTY CATALOGUING
@@ -32,7 +13,7 @@ info                      = CND.get_logger 'info',      badge
 #-----------------------------------------------------------------------------------------------------------
 @walk_keys_of = ( x, settings ) ->
   defaults = { skip_undefined: true, }
-  settings = if settings? then ( assign {}, settings, defaults ) else defaults
+  settings = { defaults..., settings..., }
   for k of x
     ### TAINT should use property descriptors to avoid possible side effects ###
     continue if ( x[ k ] is undefined ) and settings.skip_undefined
@@ -84,5 +65,5 @@ info                      = CND.get_logger 'info',      badge
 @has_only_keys = ( x, P... ) ->
   probes  = ( P.flat Infinity ).sort()
   keys    = ( @values_of @keys_of x ).sort()
-  return CND.equals probes, keys
+  return probes.length = keys.length and probes.every ( x, idx ) -> x == keys[ idx ]
 

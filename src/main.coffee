@@ -1,18 +1,6 @@
 
 'use strict'
 
-############################################################################################################
-CND                       = require 'cnd'
-rpr                       = CND.rpr
-badge                     = 'MULTIMIX/main'
-debug                     = CND.get_logger 'debug',     badge
-alert                     = CND.get_logger 'alert',     badge
-whisper                   = CND.get_logger 'whisper',   badge
-warn                      = CND.get_logger 'warn',      badge
-help                      = CND.get_logger 'help',      badge
-urge                      = CND.get_logger 'urge',      badge
-info                      = CND.get_logger 'info',      badge
-
 
 #===========================================================================================================
 # MODULE METACLASS provides static methods `@extend()`, `@include()`
@@ -31,7 +19,7 @@ class Multimix
     settings = { { overwrite: true, }..., ( settings ? null )..., }
     for key, value of object when key not in module_keywords
       if ( not settings.overwrite ) and ( @::[ key ]? or @[ key ]? )
-        throw new Error "^multimix/include@5684 overwrite set to false but name already set: #{rpr key}"
+        throw new Error "^multimix/include@5684 overwrite set to false but name already set: #{JSON.stringify key}"
       @[ key ] = value
     object.extended?.apply @
     return @
@@ -42,7 +30,7 @@ class Multimix
     settings = { { overwrite: true, }..., ( settings ? null )..., }
     for key, value of object when key not in module_keywords
       if ( not settings.overwrite ) and ( @::[ key ]? or @[ key ]? )
-        throw new Error "^multimix/include@5683 overwrite set to false but name already set: #{rpr key}"
+        throw new Error "^multimix/include@5683 overwrite set to false but name already set: #{JSON.stringify key}"
       # Assign properties to the prototype
       @::[ key ] = value
     object.included?.apply @
