@@ -13,6 +13,9 @@ warn                      = CND.get_logger 'warn',      badge
 help                      = CND.get_logger 'help',      badge
 urge                      = CND.get_logger 'urge',      badge
 echo                      = CND.echo.bind CND
+types                     = require './types'
+{ isa
+  type_of }               = types.export()
 
 
 
@@ -20,7 +23,7 @@ echo                      = CND.echo.bind CND
 @normalize_tag = ( tag ) ->
   ### Given a single string or a list of strings, return a new list that contains all whitespace-delimited
   words in the strings ###
-  return @normalize_tag [ tag, ] unless CND.isa_list tag
+  return @normalize_tag [ tag, ] unless isa.list tag
   R = []
   for t in tag
     continue if t.length is 0
@@ -51,7 +54,7 @@ echo                      = CND.echo.bind CND
 #-----------------------------------------------------------------------------------------------------------
 @meld = ( list, value ) ->
   ### When `value` is a list, `@append` it to `list`; else, `push` `value` to `list` ###
-  if CND.isa_list value then  @append list, value
+  if isa.list value then  @append list, value
   else                        list.push value
   return list
 

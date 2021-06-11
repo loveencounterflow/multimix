@@ -19,6 +19,9 @@ TOOLS                     = require './tools'
 σ_new_state               = Symbol.for 'new_state'
 σ_reject                  = Symbol.for 'reject'
 σ_finalize                = Symbol.for 'finalize'
+types                     = require './types'
+{ isa
+  type_of }               = types.export()
 
 
 #===========================================================================================================
@@ -48,7 +51,7 @@ TOOLS                     = require './tools'
       if reducer is 'tag'
         S.tag_keys.push key
         continue
-      if CND.isa_function reducer
+      if isa.function reducer
         S.functions[  key ] = reducer
         fields[       key ] = 'function'
   #.........................................................................................................
@@ -67,7 +70,7 @@ TOOLS                     = require './tools'
   #.........................................................................................................
   ### functions ###
   for key, values of S.cache
-    unless CND.isa_function ( method = S.functions[ key ] )
+    unless isa.function ( method = S.functions[ key ] )
       throw new Error "not a function for key #{rpr key}: #{rpr method}"
     S.current[ key ] = method values, S
   #.........................................................................................................
@@ -92,7 +95,7 @@ TOOLS                     = require './tools'
 
 #-----------------------------------------------------------------------------------------------------------
 @merge = ( S, key, value ) ->
-  throw new Error "expected a POD, got a #{CND.type_of value}" unless CND.isa_pod value
+  throw new Error "expected a POD, got a #{type_of value}" unless isa.object value
   target = ( S.current[ key ] ?= {} )
   target[ sub_key ] = sub_value for sub_key, sub_value of value
   return null
@@ -101,7 +104,7 @@ TOOLS                     = require './tools'
 @append = ( S, key, value ) ->
   ### TAINT consider to use `Symbol.isConcatSpreadable` in the future ###
   target = ( S.current[ key ] ?= [] )
-  if CND.isa_list then  target.splice target.length, 0, value...
+  if isa.list then  target.splice target.length, 0, value...
   else                  target.push                     value
   return null
 

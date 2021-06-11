@@ -17,6 +17,9 @@ echo                      = CND.echo.bind CND
 #...........................................................................................................
 σ_unknown_type            = Symbol.for 'unknown_type'
 COPIERS                   = @
+types                     = require './types'
+{ isa
+  type_of }               = types.export()
 
 
 #===========================================================================================================
@@ -42,7 +45,7 @@ COPIERS                   = @
 
 #-----------------------------------------------------------------------------------------------------------
 @RAW.id   = ( x ) -> x
-@RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{CND.type_of x}"
+@RAW.dont = ( x ) -> throw new Error "unable to copy value of type #{type_of x}"
 # @RAW.list = ( x ) -> @object x, new Array x.length
 @RAW.list = ( x ) -> []
 
@@ -102,10 +105,10 @@ do ->
     { type: 'text',          has_fields: no,  copy: copy_id,                                              }
     { type: 'undefined',     has_fields: no,  copy: copy_id,                                              }
     { type: 'infinity',      has_fields: no,  copy: copy_id,                                              }
-    { type: 'number',        has_fields: no,  copy: copy_id,                                              }
+    { type: 'float',         has_fields: no,  copy: copy_id,                                              }
     { type: 'nan',           has_fields: no,  copy: copy_id,                                              }
     #.......................................................................................................
-    { type: 'pod',           has_fields: yes, copy: copy_object,                                          }
+    { type: 'object',        has_fields: yes, copy: copy_object,                                          }
     { type: 'list',          has_fields: yes, copy: copy_list,                                            }
     { type: 'map',           has_fields: yes, copy: copy_map,                                             }
     { type: 'set',           has_fields: yes, copy: copy_set,                                             }

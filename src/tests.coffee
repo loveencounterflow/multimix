@@ -18,6 +18,9 @@ test                      = require 'guy-test'
 #...........................................................................................................
 # MULTIMIX                  = require './main'
 { mix }                   = require './main'
+types                     = require './types'
+{ isa
+  type_of }               = types.export()
 
 
 #===========================================================================================================
@@ -372,9 +375,9 @@ These do not work at the time being:
       has_keys = CND.truth true
     catch
       has_keys = CND.truth false
-    # debug type, ( CND.blue CND.type_of value ), ( CND.yellow CND.type_of mix.deep_copy value ), has_keys
+    # debug type, ( CND.blue type_of value ), ( CND.yellow type_of mix.deep_copy value ), has_keys
     copied_value = mix.deep_copy value
-    T.eq ( CND.type_of value ), ( CND.type_of copied_value )
+    T.eq ( type_of value ), ( type_of copied_value )
     # debug '2010', type, ( CND.truth is_primitive ), ( CND.truth value is copied_value ), ( CND.truth is_primitive is ( value is copied_value ) )
   #   if is_primitive
   #     T.ok value is copied_value
@@ -442,7 +445,7 @@ These do not work at the time being:
   L               = require './copiers'
   #.........................................................................................................
   raw_copy = ( x ) ->
-    type          = CND.type_of x
+    type          = type_of x
     description   = L.type_descriptions[ type ] ? L.type_descriptions[ σ_unknown_type ]
     { has_fields
       copy      } = description

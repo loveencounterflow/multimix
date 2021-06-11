@@ -25,10 +25,15 @@ MULTIMIX                  = {}
 MULTIMIX.TOOLS            = require './tools'
 MULTIMIX.RECIPES          = require './recipes'
 MULTIMIX.COPIERS          = require './copiers'
+types                     = require './types'
+{ isa
+  type_of }               = types.export()
+
+
 
 #-----------------------------------------------------------------------------------------------------------
 MULTIMIX._get_seed = ( S, seed ) ->
-  type          = CND.type_of seed
+  type          = type_of seed
   description   = MULTIMIX.COPIERS.type_descriptions[ type ]
   description  ?= MULTIMIX.COPIERS.type_descriptions[ σ_unknown_type ]
   { has_fields
@@ -53,7 +58,7 @@ MULTIMIX.mix = ( mixins, recipe, root = null, selector = [] ) ->
   ### Deal with nested recipe first: ###
   if ( fields = S.recipe[ 'fields' ] )?
     for field_key, field_value of fields
-      continue unless CND.isa_pod field_value
+      continue unless isa.object field_value
       selector.push field_key
       partial_mixins = ( mixin[ field_key ] for mixin in mixins when mixin[ field_key ] )
       # partial_mixins = []
@@ -74,7 +79,7 @@ MULTIMIX.mix = ( mixins, recipe, root = null, selector = [] ) ->
       S.root          = root
       S.current       = S.seed
       S.recipe_name   = S.recipe[ 'fields' ]?[ mx_key ] ? S.recipe_fallback
-      continue if CND.isa_pod S.recipe_name
+      continue if isa.object S.recipe_name
       continue if MULTIMIX.RECIPES[ σ_reject ] S, mx_key, mx_value
       unless ( recipe = MULTIMIX.RECIPES[ S.recipe_name ] )?
         throw new Error "unknown recipe #{rpr S.recipe_name}"
@@ -83,7 +88,7 @@ MULTIMIX.mix = ( mixins, recipe, root = null, selector = [] ) ->
   MULTIMIX.RECIPES[ σ_finalize ] S
   #.........................................................................................................
   if ( hook = S.recipe?[ 'after' ] )?
-    unless ( type = CND.type_of hook ) is 'function'
+    unless ( type = type_of hook ) is 'function'
       throw new Error "expected function for 'after' hook, got a #{type}"
     hook S
   #.........................................................................................................
