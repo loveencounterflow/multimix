@@ -47,6 +47,7 @@ get_types = ->
 #===========================================================================================================
 class @Multimix
 
+  @state:   GUY.lft.freeze { hedges: null, }
   #---------------------------------------------------------------------------------------------------------
   constructor: ( cfg ) ->
     ### TAINT bug in Intertype::create() / Intertype::validate(), returns `true` instead of input value ###
