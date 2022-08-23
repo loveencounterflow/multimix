@@ -48,7 +48,9 @@ get_types = ->
 class @Multimix
 
   @symbol:  Symbol 'multimix'
+  @states:  new WeakMap()
   @state:   GUY.lft.freeze { hedges: null, }
+
   #---------------------------------------------------------------------------------------------------------
   constructor: ( cfg ) ->
     ### TAINT bug in Intertype::create() / Intertype::validate(), returns `true` instead of input value ###
@@ -60,17 +62,24 @@ class @Multimix
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
     @types    = get_types()
     cfg       = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
+    clasz     = @constructor
     throw new Error "^343^ need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
     #.......................................................................................................
-    @hub      = cfg.hub ? null
+    ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
+    if cfg.hub?
+      @hub      = cfg.hub
+      if ( state = clasz.states.get @hub )? then  @state                        = state
+      else                                        clasz.states.set @hub, @state = { clasz.states..., }
+    else
+      @state = { clasz.states..., }
+    #.......................................................................................................
     @handler  = cfg.handler # .bind @hub
-    @state    = cfg.state ? { hedges: null, }
+    # @state    = cfg.state ? { hedges: null, }
     R         = @_get_hedge_proxy true, @handler
     return R
 
   #---------------------------------------------------------------------------------------------------------
   _get_hedge_proxy: ( is_top, handler ) ->
-    dsc =
     clasz = @constructor
     dsc   =
       #-----------------------------------------------------------------------------------------------------
