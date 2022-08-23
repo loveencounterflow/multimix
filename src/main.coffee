@@ -47,6 +47,7 @@ get_types = ->
 #===========================================================================================================
 class @Multimix
 
+  @symbol:  Symbol 'multimix'
   @state:   GUY.lft.freeze { hedges: null, }
   #---------------------------------------------------------------------------------------------------------
   constructor: ( cfg ) ->
@@ -70,8 +71,11 @@ class @Multimix
   #---------------------------------------------------------------------------------------------------------
   _get_hedge_proxy: ( is_top, handler ) ->
     dsc =
+    clasz = @constructor
+    dsc   =
       #-----------------------------------------------------------------------------------------------------
       get: ( target, key ) =>
+        return @                              if key is clasz.symbol
         return "#{target.constructor.name}"   if key is Symbol.toStringTag
         return target.constructor             if key is 'constructor'
         return target.toString                if key is 'toString'
