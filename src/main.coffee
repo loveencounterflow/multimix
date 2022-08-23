@@ -2,7 +2,7 @@
 
 
 ############################################################################################################
-GUY                       = require '../../../apps/guy'
+GUY                       = require 'guy'
 { alert
   debug
   help
@@ -18,7 +18,7 @@ GUY                       = require '../../../apps/guy'
   log     }               = GUY.trm
 rvr                       = GUY.trm.reverse
 truth                     = GUY.trm.truth.bind GUY.trm
-{ Intertype }             = require '../../../apps/intertype'
+{ Intertype }             = require 'intertype'
 types                     = new Intertype()
 { declare
   create
