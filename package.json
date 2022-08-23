@@ -1,10 +1,10 @@
 {
   "name": "multimix",
   "version": "5.0.0",
-  "description": "flexible object copying",
+  "description": "Objects with auto-generated property chains",
   "main": "lib/main.js",
   "scripts": {
-    "test": "use https://github.com/loveencounterflow/hengist"
+    "test": "use https://github.com/loveencounterflow/hengist/dev/multimix"
   },
   "repository": {
     "type": "git",
@@ -16,10 +16,8 @@
   "homepage": "https://github.com/loveencounterflow/multimix",
   "keywords": [
     "multimix",
-    "oop",
-    "inheritance",
-    "traits",
-    "mixin"
+    "hedges",
+    "properties"
   ],
   "author": "loveencounterflow",
   "license": "MIT"
