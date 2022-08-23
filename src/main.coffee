@@ -18,28 +18,32 @@ GUY                       = require 'guy'
   log     }               = GUY.trm
 rvr                       = GUY.trm.reverse
 truth                     = GUY.trm.truth.bind GUY.trm
-{ Intertype }             = require 'intertype'
-types                     = new Intertype()
-{ declare
-  create
-  isa
-  validate  }             = types
 node_inspect              = Symbol.for 'nodejs.util.inspect.custom'
 nameit                    = ( name, f ) -> Object.defineProperty f, 'name', { value: name, }
+H                         = {}
 
+#===========================================================================================================
+get_types = ->
+  return R if ( R = H.types )?
 
-#-----------------------------------------------------------------------------------------------------------
-declare.hdg_new_hedge_cfg
-  $handler:     'function'
-  $hub:         'optional.function.or.object'
-  $state:       'optional.object'
-  default:
-    hub:        null
-    handler:    null
-    state:      null
+  #---------------------------------------------------------------------------------------------------------
+  { Intertype }             = require 'intertype'
+  types                     = new Intertype()
 
+  #---------------------------------------------------------------------------------------------------------
+  types.declare.hdg_new_hedge_cfg
+    $handler:     'function'
+    $hub:         'optional.function.or.object'
+    $state:       'optional.object'
+    default:
+      hub:        null
+      handler:    null
+      state:      null
 
-#-----------------------------------------------------------------------------------------------------------
+  #---------------------------------------------------------------------------------------------------------
+  return types
+
+#===========================================================================================================
 class Hedge
 
   #---------------------------------------------------------------------------------------------------------
@@ -51,8 +55,9 @@ class Hedge
     ### TAINT temporary code to avoid faulty `Intertype::validate` ###
     ### NOTE use `create` when `validate` is fixed ###
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
-    cfg       = { isa.hdg_new_hedge_cfg.default..., cfg..., }
-    throw new Error "^343^ need handler, got #{rpr cfg.handler}" unless isa.function cfg.handler
+    @types    = get_types()
+    cfg       = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
+    throw new Error "^343^ need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
     #.......................................................................................................
     @hub      = cfg.hub ? null
     @handler  = cfg.handler # .bind @hub
