@@ -20,5 +20,9 @@
     "properties"
   ],
   "author": "loveencounterflow",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "guy": "^11.6.0",
+    "intertype": "^10.1.0"
+  }
 }
