@@ -46,15 +46,23 @@
 * `cfg`:
 
   * `cfg.create`:
-    * `true`: missing props will be auto-generated as plain objects
+    * `true` (default): missing props will be auto-generated as plain objects
     * `false`: no missing props will be generated
-    * a function: to be called, return value becomes new property where property is missing
+    * a function: to be called as `create key, target` when a new property is first accessed; the return
+      value of this function will become then new property
 
+  * `strict`: if set to `true`, trying to access an unset property will cause an error. This setting is only
+    valid when used in conjunction with `create: false`.
 
 
 ## To Do
 
 * **[–]** documentation
+* **[–]** `cfg.oneshot`
+
+## Is Done
+
+* **[+]** `cfg.strict`
 
 
 

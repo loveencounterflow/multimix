@@ -19,11 +19,13 @@ GUY                       = require 'guy'
   log     }               = GUY.trm
 { get
   hide }                  = GUY.props
+{ freeze }                = GUY.lft
 rvr                       = GUY.trm.reverse
 truth                     = GUY.trm.truth.bind GUY.trm
 node_inspect              = Symbol.for 'nodejs.util.inspect.custom'
 nameit                    = ( name, f ) -> Object.defineProperty f, 'name', { value: name, }
 H                         = {}
+E                         = require './errors'
 multimix_symbol           = Symbol 'multimix'
 stringtag_symbol          = Symbol.toStringTag
 iterator_symbol           = Symbol.iterator
@@ -44,11 +46,13 @@ get_types = ->
     $hub:         'optional.function.or.object'
     # $state:       'optional.object'
     $create:      'boolean.or.function'
+    $strict:      'boolean'
     default:
       hub:        null
       handler:    null
       # state:      null
-      create:     true
+      create:     null
+      strict:     false
 
   #---------------------------------------------------------------------------------------------------------
   return types
@@ -69,11 +73,15 @@ class @Multimix
     ### TAINT temporary code to avoid faulty `Intertype::validate` ###
     ### NOTE use `create` when `validate` is fixed ###
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
-    cfg       = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
-    clasz     = @constructor
-    throw new Error "^27-1^ need handler, got #{rpr cfg.handler}"  unless @types.isa.function cfg.handler
-    throw new Error "^27-2^ expected boolean or function"          unless @types.isa.boolean.or.function cfg.create
     hide @, 'types', get_types()
+    cfg         = { cfg..., }
+    cfg.create ?= not cfg.strict
+    cfg         = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
+    clasz       = @constructor
+    throw new Error "^27-1^ need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
+    throw new Error "^27-2^ expected boolean or function"         unless @types.isa.boolean.or.function cfg.create
+    throw new Error "^27-2^ expected boolean"                     unless @types.isa.boolean cfg.strict
+    throw new Error "^27-2^ cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
     @hub = cfg.hub ? @
@@ -82,6 +90,7 @@ class @Multimix
     #.......................................................................................................
     @handler      = cfg.handler # .bind @hub
     @create       = cfg.create
+    @strict       = cfg.strict
     R             = @_get_hedge_proxy true, @handler
     return R
 
@@ -108,6 +117,7 @@ class @Multimix
         #...................................................................................................
         # @handler @state.hedges ### put call for prop access here ###
         return R if ( R = get target, key, nosuchvalue ) isnt nosuchvalue
+        throw new E.Multimix_no_such_property '^mmx.proxy@1^', key if @strict
         return undefined if @create is false
         hedges  = [ @state.hedges..., ]
         handler = if @create is true then @handler else @create key, target
