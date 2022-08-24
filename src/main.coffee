@@ -47,12 +47,16 @@ get_types = ->
     # $state:       'optional.object'
     $create:      'boolean.or.function'
     $strict:      'boolean'
+    $oneshot:     'boolean'
+    $delete:      'boolean'
     default:
       hub:        null
       handler:    null
       # state:      null
       create:     null
       strict:     false
+      oneshot:    false
+      delete:     true
 
   #---------------------------------------------------------------------------------------------------------
   return types
@@ -78,10 +82,11 @@ class @Multimix
     cfg.create ?= not cfg.strict
     cfg         = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
     clasz       = @constructor
-    throw new Error "^27-1^ need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
-    throw new Error "^27-2^ expected boolean or function"         unless @types.isa.boolean.or.function cfg.create
-    throw new Error "^27-2^ expected boolean"                     unless @types.isa.boolean cfg.strict
-    throw new Error "^27-2^ cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
+    throw new E.Multimix_cfg_error '^mmx.ctor<@1^', "need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
+    throw new E.Multimix_cfg_error '^mmx.ctor<@2^', "expected boolean or function"         unless @types.isa.boolean.or.function cfg.create
+    throw new E.Multimix_cfg_error '^mmx.ctor<@3^', "expected boolean"                     unless @types.isa.boolean cfg.strict
+    throw new E.Multimix_cfg_error '^mmx.ctor<@4^', "cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
+    throw new E.Multimix_cfg_error '^mmx.ctor<@5^', "expected boolean"                     unless @types.isa.boolean cfg.oneshot
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
     @hub = cfg.hub ? @
@@ -91,6 +96,8 @@ class @Multimix
     @handler      = cfg.handler # .bind @hub
     @create       = cfg.create
     @strict       = cfg.strict
+    @oneshot      = cfg.oneshot
+    @delete       = cfg.delete
     R             = @_get_hedge_proxy true, @handler
     return R
 
@@ -117,7 +124,7 @@ class @Multimix
         #...................................................................................................
         # @handler @state.hedges ### put call for prop access here ###
         return R if ( R = get target, key, nosuchvalue ) isnt nosuchvalue
-        throw new E.Multimix_no_such_property '^mmx.proxy@1^', key if @strict
+        throw new E.Multimix_no_such_property '^mmx.proxy.get@1^', key if @strict
         return undefined if @create is false
         hedges  = [ @state.hedges..., ]
         handler = if @create is true then @handler else @create key, target
@@ -125,6 +132,16 @@ class @Multimix
         return target[ key ] = @_get_hedge_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
           return handler.call @hub, hedges, P...
+      #-----------------------------------------------------------------------------------------------------
+      set: ( target, key, value ) =>
+        if @oneshot and ( get target, key, nosuchvalue ) isnt nosuchvalue
+          throw new E.Multimix_reassignment_error '^mmx.proxy.set@1^', key
+        return target[ key ] = value
+      #-----------------------------------------------------------------------------------------------------
+      deleteProperty: ( target, key ) =>
+        unless @delete
+          throw new E.Multimix_deletion_error '^mmx.proxy.set@1^', key
+        return delete target[ key ]
     #.......................................................................................................
     R = new Proxy handler, dsc
 

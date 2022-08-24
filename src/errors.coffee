@@ -21,3 +21,11 @@ class @Multimix_error extends Error
 #-----------------------------------------------------------------------------------------------------------
 class @Multimix_no_such_property extends @Multimix_error
   constructor: ( ref, key ) -> super ref, "no such property: #{rpr key}"
+#-----------------------------------------------------------------------------------------------------------
+class @Multimix_reassignment_error extends @Multimix_error
+  constructor: ( ref, key ) -> super ref, "oneshot object does not allow re-assignment to property #{rpr key}"
+#-----------------------------------------------------------------------------------------------------------
+class @Multimix_deletion_error extends @Multimix_error
+  constructor: ( ref, key ) -> super ref, "object does not allow deletion of property #{rpr key}"
+#-----------------------------------------------------------------------------------------------------------
+class @Multimix_cfg_error extends @Multimix_error
