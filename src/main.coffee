@@ -41,11 +41,13 @@ get_types = ->
   types.declare.hdg_new_hedge_cfg
     $handler:     'function'
     $hub:         'optional.function.or.object'
-    $state:       'optional.object'
+    # $state:       'optional.object'
+    $create:      'boolean.or.function'
     default:
       hub:        null
       handler:    null
-      state:      null
+      # state:      null
+      create:     true
 
   #---------------------------------------------------------------------------------------------------------
   return types
@@ -69,19 +71,17 @@ class @Multimix
     @types    = get_types()
     cfg       = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
     clasz     = @constructor
-    throw new Error "^343^ need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
+    throw new Error "^27-1^ need handler, got #{rpr cfg.handler}"  unless @types.isa.function cfg.handler
+    throw new Error "^27-2^ expected boolean or function"          unless @types.isa.boolean.or.function cfg.create
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
-    if cfg.hub?
-      @hub      = cfg.hub
-      if ( state = clasz.states.get @hub )? then  @state                        = state
-      else                                        clasz.states.set @hub, @state = { clasz.states..., }
-    else
-      @state = { clasz.states..., }
+    @hub = cfg.hub ? @
+    if ( state = clasz.states.get @hub )? then  @state                        = state
+    else                                        clasz.states.set @hub, @state = { clasz.states..., }
     #.......................................................................................................
-    @handler  = cfg.handler # .bind @hub
-    # @state    = cfg.state ? { hedges: null, }
-    R         = @_get_hedge_proxy true, @handler
+    @handler      = cfg.handler # .bind @hub
+    @create       = cfg.create
+    R             = @_get_hedge_proxy true, @handler
     return R
 
   #---------------------------------------------------------------------------------------------------------
@@ -106,13 +106,14 @@ class @Multimix
         else            @state.hedges.push key
         #...................................................................................................
         # @handler @state.hedges ### put call for prop access here ###
-        hedges = [ @state.hedges..., ]
         return R if ( R = get target, key, nosuchvalue ) isnt nosuchvalue
+        return undefined if @create is false
+        hedges  = [ @state.hedges..., ]
+        handler = if @create is true then @handler else @create key, target
         #...................................................................................................
-        sub_handler = nameit key, ( P... ) =>
-          whisper '^450-2^', "call with", { hedges, P, }
-          return @handler hedges, P...
-        return target[ key ] ?= @_get_hedge_proxy false, sub_handler
+        return target[ key ] = @_get_hedge_proxy false, nameit key, ( P... ) =>
+          ### put code for tracing here ###
+          return handler.call @hub, hedges, P...
     #.......................................................................................................
     R = new Proxy handler, dsc
 
