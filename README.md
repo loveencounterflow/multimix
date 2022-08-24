@@ -45,9 +45,9 @@
 
 * `cfg`:
 
-  * `cfg.create`: ??????????????????
+  * `cfg.create`:
     * `true`: missing props will be auto-generated as plain objects
-    * `true`: no missing props will be generated
+    * `false`: no missing props will be generated
     * a function: to be called, return value becomes new property where property is missing
 
 
