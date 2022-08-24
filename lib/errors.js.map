@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "file": "",
+  "sourceRoot": "",
+  "sources": [
+    "../src/errors.coffee"
+  ],
+  "names": [],
+  "mappings": "AACA;EAAA;AAAA,MAAA,GAAA,EAAA,GAAA;;;EAIA,GAAA,GAA4B,OAAA,CAAQ,KAAR;;EAC5B,CAAA,CAAE,GAAF,CAAA,GAA4B,GAAG,CAAC,GAAhC,EALA;;;EASM,IAAC,CAAA,iBAAP,MAAA,eAAA,QAA8B,MAA9B;IACE,WAAa,CAAE,GAAF,EAAO,OAAP,CAAA;WACX,CAAA;MACA,IAAG,GAAA,KAAO,IAAV;QACE,IAAC,CAAA,OAAD,GAAY;AACZ,eAAO,OAFT;;MAGA,IAAC,CAAA,OAAD,GAAY,CAAA,CAAA,CAAG,GAAH,CAAA,EAAA,CAAA,CAAW,IAAC,CAAA,WAAW,CAAC,IAAxB,CAAA,EAAA,CAAA,CAAiC,OAAjC,CAAA;MACZ,IAAC,CAAA,GAAD,GAAY;AACZ,aAAO,MAAU;IAPN;;EADf,EATA;;;EAoBM,IAAC,CAAA,4BAAP,MAAA,0BAAA,QAAyC,IAAC,CAAA,eAA1C;IACE,WAAa,CAAE,GAAF,EAAO,GAAP,CAAA;WAAgB,CAAM,GAAN,EAAW,CAAA,kBAAA,CAAA,CAAqB,GAAA,CAAI,GAAJ,CAArB,CAAA,CAAX;IAAhB;;EADf;AApBA",
+  "sourcesContent": [
+    "\n'use strict'\n\n\n############################################################################################################\nGUY                       = require 'guy'\n{ rpr   }                 = GUY.trm\n\n\n#-----------------------------------------------------------------------------------------------------------\nclass @Multimix_error extends Error\n  constructor: ( ref, message ) ->\n    super()\n    if ref is null\n      @message  = message\n      return undefined\n    @message  = \"#{ref} (#{@constructor.name}) #{message}\"\n    @ref      = ref\n    return undefined ### always return `undefined` from constructor ###\n\n#-----------------------------------------------------------------------------------------------------------\nclass @Multimix_no_such_property extends @Multimix_error\n  constructor: ( ref, key ) -> super ref, \"no such property: #{rpr key}\"\n"
+  ]
+}
