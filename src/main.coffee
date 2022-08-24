@@ -84,25 +84,24 @@ class @Multimix
     dsc   =
       #-----------------------------------------------------------------------------------------------------
       get: ( target, key ) =>
-        return @                              if key is clasz.symbol
-        return "#{target.constructor.name}"   if key is Symbol.toStringTag
-        return target.constructor             if key is 'constructor'
-        return target.toString                if key is 'toString'
-        return target.call                    if key is 'call'
-        return target.apply                   if key is 'apply'
-        return target[ Symbol.iterator  ]     if key is Symbol.iterator
-        return target[ node_inspect     ]     if key is node_inspect
-        ### NOTE necessitated by behavior of `node:util.inspect()`: ###
-        return target[ 0                ]     if key is '0'
-        # whisper '^450-1^', { target, key, }
+        switch key
+          when  clasz.symbol        then return @
+          when  Symbol.toStringTag  then return "#{target.constructor.name}"
+          when  'constructor'       then return target.constructor
+          when  'toString'          then return target.toString
+          when  'call'              then return target.call
+          when  'apply'             then return target.apply
+          when  Symbol.iterator     then return target[ Symbol.iterator  ]
+          when  node_inspect        then return target[ node_inspect     ]
+          ### NOTE necessitated by behavior of `node:util.inspect()`: ###
+          when  '0'                 then return target[ 0                ]
         #...................................................................................................
         if is_top then  @state.hedges = [ key, ]
         else            @state.hedges.push key
         #...................................................................................................
-        ### put call for prop access here: ###
-        # @handler @state.hedges
+        # @handler @state.hedges ### put call for prop access here ###
         return R if ( R = target[ key ] ) isnt undefined
-        hedges        = [ @state.hedges..., ]
+        hedges = [ @state.hedges..., ]
         #...................................................................................................
         sub_handler = nameit key, ( P... ) =>
           whisper '^450-2^', "call with", { hedges, P, }
