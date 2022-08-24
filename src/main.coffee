@@ -17,6 +17,7 @@ GUY                       = require 'guy'
   inspect
   echo
   log     }               = GUY.trm
+{ get }                   = GUY.props
 rvr                       = GUY.trm.reverse
 truth                     = GUY.trm.truth.bind GUY.trm
 node_inspect              = Symbol.for 'nodejs.util.inspect.custom'
@@ -25,6 +26,8 @@ H                         = {}
 multimix_symbol           = Symbol 'multimix'
 stringtag_symbol          = Symbol.toStringTag
 iterator_symbol           = Symbol.iterator
+nosuchvalue               = Symbol 'nosuchvalue'
+
 
 #===========================================================================================================
 get_types = ->
@@ -103,8 +106,8 @@ class @Multimix
         else            @state.hedges.push key
         #...................................................................................................
         # @handler @state.hedges ### put call for prop access here ###
-        return R if ( R = target[ key ] ) isnt undefined
         hedges = [ @state.hedges..., ]
+        return R if ( R = get target, key, nosuchvalue ) isnt nosuchvalue
         #...................................................................................................
         sub_handler = nameit key, ( P... ) =>
           whisper '^450-2^', "call with", { hedges, P, }
