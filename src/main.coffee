@@ -22,6 +22,9 @@ truth                     = GUY.trm.truth.bind GUY.trm
 node_inspect              = Symbol.for 'nodejs.util.inspect.custom'
 nameit                    = ( name, f ) -> Object.defineProperty f, 'name', { value: name, }
 H                         = {}
+multimix_symbol           = Symbol 'multimix'
+stringtag_symbol          = Symbol.toStringTag
+iterator_symbol           = Symbol.iterator
 
 #===========================================================================================================
 get_types = ->
@@ -47,7 +50,7 @@ get_types = ->
 #===========================================================================================================
 class @Multimix
 
-  @symbol:  Symbol 'multimix'
+  @symbol:  multimix_symbol
   @states:  new WeakMap()
   @state:   GUY.lft.freeze { hedges: null, }
 
@@ -85,13 +88,13 @@ class @Multimix
       #-----------------------------------------------------------------------------------------------------
       get: ( target, key ) =>
         switch key
-          when  clasz.symbol        then return @
-          when  Symbol.toStringTag  then return "#{target.constructor.name}"
+          when  multimix_symbol     then return @
+          when  stringtag_symbol    then return "#{target.constructor.name}"
           when  'constructor'       then return target.constructor
           when  'toString'          then return target.toString
           when  'call'              then return target.call
           when  'apply'             then return target.apply
-          when  Symbol.iterator     then return target[ Symbol.iterator  ]
+          when  iterator_symbol     then return target[ Symbol.iterator  ]
           when  node_inspect        then return target[ node_inspect     ]
           ### NOTE necessitated by behavior of `node:util.inspect()`: ###
           when  '0'                 then return target[ 0                ]
