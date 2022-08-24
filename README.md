@@ -61,13 +61,13 @@
     * a function: to be called as `create key, target` when a new property is first accessed; the return
       value of this function will become then new property
 
-  * `strict`: (default `false`) if set to `true`, trying to access an unset property will cause an error.
-    This setting is only valid when used in conjunction with `create: false`.
+  * `cfg.strict`: (default `false`) if set to `true`, trying to access an unset property will cause an
+    error. This setting is only valid when used in conjunction with `create: false`.
 
-  * `oneshot`: (default `false`) if set to `true`, trying to re-assign any value to an existing property
+  * `cfg.oneshot`: (default `false`) if set to `true`, trying to re-assign any value to an existing property
     will cause an error
 
-  * `delete`: (default `true`) if set to `false`, trying to delete any property will cause an error
+  * `cfg.delete`: (default `true`) if set to `false`, trying to delete any property will cause an error
 
 
 ## To Do
