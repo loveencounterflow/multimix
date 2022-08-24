@@ -7,6 +7,7 @@
 
 - [MultiMix](#multimix)
   - [To Do](#to-do)
+  - [Is Done](#is-done)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -38,12 +39,21 @@
 * since hubs and properties are proxies, can do things on property access, no call needed, so both `d.foo`
   and `d.foo 42` can potentially do things
 
-* 'handler': function to be called on prop access, call, or both
-
-* 'hub': optional reference / base object (re 'hub': as if props were spokes)
 
 
 * `cfg`:
+
+  * `cfg.handler`: mandatory property; function to be called on prop access, call, or both
+    * `d = new Multimix { handler, }` returns the handler wrapped into a proxy
+    * the `Multimix` instance is accessible as `d[Multimix.symbol]`. `Multimix.symbol` is a private symbol
+      and thus guaranteed not to overwrite or shadow an existing property
+    * existing properties of `handler` will be returned
+    * non-existant properties of `handler` will be auto-generated on first access; these will be functions
+      that, when called with any number of arguments `f P...`, will in turn call `handler props, P...`
+    * `handler` will be called in the context of `hub` where given; otherwise, its context will be the
+      `Multimix` instance.
+
+  * `hub`: optional reference / base object (re 'hub': as if props were spokes)
 
   * `cfg.create`:
     * `true` (default): missing props will be auto-generated as plain objects
@@ -51,18 +61,24 @@
     * a function: to be called as `create key, target` when a new property is first accessed; the return
       value of this function will become then new property
 
-  * `strict`: if set to `true`, trying to access an unset property will cause an error. This setting is only
-    valid when used in conjunction with `create: false`.
+  * `strict`: (default `false`) if set to `true`, trying to access an unset property will cause an error.
+    This setting is only valid when used in conjunction with `create: false`.
+
+  * `oneshot`: (default `false`) if set to `true`, trying to re-assign any value to an existing property
+    will cause an error
+
+  * `delete`: (default `true`) if set to `false`, trying to delete any property will cause an error
 
 
 ## To Do
 
 * **[–]** documentation
-* **[–]** `cfg.oneshot`
 
 ## Is Done
 
 * **[+]** `cfg.strict`
+* **[+]** `cfg.oneshot`
+* **[+]** `cfg.delete`
 
 
 
