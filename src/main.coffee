@@ -17,7 +17,8 @@ GUY                       = require 'guy'
   inspect
   echo
   log     }               = GUY.trm
-{ get }                   = GUY.props
+{ get
+  hide }                  = GUY.props
 rvr                       = GUY.trm.reverse
 truth                     = GUY.trm.truth.bind GUY.trm
 node_inspect              = Symbol.for 'nodejs.util.inspect.custom'
@@ -68,11 +69,11 @@ class @Multimix
     ### TAINT temporary code to avoid faulty `Intertype::validate` ###
     ### NOTE use `create` when `validate` is fixed ###
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
-    @types    = get_types()
     cfg       = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
     clasz     = @constructor
     throw new Error "^27-1^ need handler, got #{rpr cfg.handler}"  unless @types.isa.function cfg.handler
     throw new Error "^27-2^ expected boolean or function"          unless @types.isa.boolean.or.function cfg.create
+    hide @, 'types', get_types()
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
     @hub = cfg.hub ? @
