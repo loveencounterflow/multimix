@@ -129,7 +129,9 @@ class @Multimix
         #...................................................................................................
         return target[ key ] = @_get_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
-          return handler.call @hub, hedges, P...
+          R = handler.call @hub, hedges, P...
+          @state.hedges = []
+          return R
       #-----------------------------------------------------------------------------------------------------
       set: ( target, key, value ) =>
         if @oneshot and ( get target, key, nosuchvalue ) isnt nosuchvalue
