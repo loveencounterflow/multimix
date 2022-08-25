@@ -67,13 +67,12 @@ class @Multimix
 
   @symbol:  multimix_symbol
   @states:  new WeakMap()
-  @state:   GUY.lft.freeze { hedges: null, }
+  @state:   GUY.lft.freeze { hedges: [], }
 
   #---------------------------------------------------------------------------------------------------------
   constructor: ( cfg ) ->
     ### TAINT bug in Intertype::create() / Intertype::validate(), returns `true` instead of input value ###
     # cfg     = create.hdg_new_hedge_cfg cfg
-    # urge '^345^', rvr cfg
     #.......................................................................................................
     ### TAINT temporary code to avoid faulty `Intertype::validate` ###
     ### NOTE use `create` when `validate` is fixed ###
