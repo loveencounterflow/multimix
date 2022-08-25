@@ -95,11 +95,10 @@ class @Multimix
     if ( state = clasz.states.get @hub )? then  @state                        = state
     else                                        clasz.states.set @hub, @state = { clasz.state..., }
     #.......................................................................................................
-    R             = @_get_hedge_proxy true, @handler
-    return R
+    return @_get_proxy true, ( P... ) => @handler.call @hub, [], P...
 
   #---------------------------------------------------------------------------------------------------------
-  _get_hedge_proxy: ( is_top, handler ) ->
+  _get_proxy: ( is_top, handler ) ->
     clasz = @constructor
     dsc   =
       #-----------------------------------------------------------------------------------------------------
@@ -127,7 +126,7 @@ class @Multimix
         if @create is true then handler = @handler
         else @create key, target; return target[ key ]
         #...................................................................................................
-        return target[ key ] = @_get_hedge_proxy false, nameit key, ( P... ) =>
+        return target[ key ] = @_get_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
           return handler.call @hub, hedges, P...
       #-----------------------------------------------------------------------------------------------------
