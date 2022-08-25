@@ -12,7 +12,7 @@ GUY                       = require 'guy'
   praise
   urge
   warn
-  whisper }               = GUY.trm.get_loggers 'GUY/demo-guy-hedgerows'
+  whisper }               = GUY.trm.get_loggers 'MULTIMIX'
 { rpr
   inspect
   echo
