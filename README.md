@@ -56,10 +56,12 @@
   * `hub`: optional reference / base object (re 'hub': as if props were spokes)
 
   * `cfg.create`:
-    * `true` (default): missing props will be auto-generated as plain objects
+    * `true` (default): missing props will be auto-generated as functions that call `handler` in the context
+      of `cfg.hub` where given (or else the `Multimix` instance)
     * `false`: no missing props will be generated
-    * a function: to be called as `create key, target` when a new property is first accessed; the return
-      value of this function will become then new property
+    * a function: to be called as `create key, target` when a new property is first accessed; this function
+      may or may not create a new property as seen fit. The MultiMix proxy will, at any rate, return
+      `target[ key ]` which may or may not be `undefined`.
 
   * `cfg.strict`: (default `false`) if set to `true`, trying to access an unset property will cause an
     error. This setting is only valid when used in conjunction with `create: false`.
