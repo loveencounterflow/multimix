@@ -49,6 +49,7 @@ get_types = ->
     $strict:      'boolean'
     $oneshot:     'boolean'
     $deletion:    'boolean'
+    $hide:        'boolean'
     extras:       false
     default:
       hub:        null
@@ -58,6 +59,7 @@ get_types = ->
       strict:     false
       oneshot:    false
       deletion:   true
+      hide:       true
 
   #---------------------------------------------------------------------------------------------------------
   return types
@@ -131,11 +133,12 @@ class @Multimix
         if @create is true then handler = @handler
         else @create key, target; return target[ key ]
         #...................................................................................................
-        return target[ key ] = @_get_proxy false, nameit key, ( P... ) =>
+        hide target, key, proxy = @_get_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
           R = handler.call @hub, hedges, P...
           @state.hedges = []
           return R
+        return proxy
       #-----------------------------------------------------------------------------------------------------
       set: ( target, key, value ) =>
         if @oneshot and ( get target, key, nosuchvalue ) isnt nosuchvalue

@@ -71,6 +71,8 @@
 
   * `cfg.deletion`: (default `true`) if set to `false`, trying to delete any property will cause an error
 
+  * `cfg.hide`: (default `true`) if set to `true`, will make auto-generated properties non-enumerable so
+    they don't show up in console output
 
 ## To Do
 
