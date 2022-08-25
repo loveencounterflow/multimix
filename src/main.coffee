@@ -80,6 +80,7 @@ class @Multimix
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
     hide @, 'types', get_types()
     cfg         = { cfg..., }
+    cfg.hub    ?= @
     cfg.create ?= not cfg.strict
     cfg         = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
     clasz       = @constructor
@@ -89,16 +90,12 @@ class @Multimix
     throw new E.Multimix_cfg_error '^mmx.ctor<@4^', "cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
     throw new E.Multimix_cfg_error '^mmx.ctor<@5^', "expected boolean"                     unless @types.isa.boolean cfg.oneshot
     #.......................................................................................................
+    Object.assign @, cfg
+    #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
-    @hub = cfg.hub ? @
     if ( state = clasz.states.get @hub )? then  @state                        = state
     else                                        clasz.states.set @hub, @state = { clasz.states..., }
     #.......................................................................................................
-    @handler      = cfg.handler # .bind @hub
-    @create       = cfg.create
-    @strict       = cfg.strict
-    @oneshot      = cfg.oneshot
-    @deletion     = cfg.deletion
     R             = @_get_hedge_proxy true, @handler
     return R
 
