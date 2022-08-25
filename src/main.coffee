@@ -133,11 +133,12 @@ class @Multimix
         if @create is true then handler = @handler
         else @create key, target; return target[ key ]
         #...................................................................................................
-        hide target, key, proxy = @_get_proxy false, nameit key, ( P... ) =>
+        proxy = @_get_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
           R = handler.call @hub, hedges, P...
           @state.hedges = []
           return R
+        if @hide then ( hide target, key, proxy ) else target[ key ] = proxy
         return proxy
       #-----------------------------------------------------------------------------------------------------
       set: ( target, key, value ) =>
