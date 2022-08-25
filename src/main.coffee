@@ -48,7 +48,8 @@ get_types = ->
     $create:      'boolean.or.function'
     $strict:      'boolean'
     $oneshot:     'boolean'
-    $delete:      'boolean'
+    $deletion:    'boolean'
+    extras:       false
     default:
       hub:        null
       handler:    null
@@ -56,7 +57,7 @@ get_types = ->
       create:     null
       strict:     false
       oneshot:    false
-      delete:     true
+      deletion:     true
 
   #---------------------------------------------------------------------------------------------------------
   return types
@@ -97,7 +98,7 @@ class @Multimix
     @create       = cfg.create
     @strict       = cfg.strict
     @oneshot      = cfg.oneshot
-    @delete       = cfg.delete
+    @deletion     = cfg.deletion
     R             = @_get_hedge_proxy true, @handler
     return R
 
@@ -139,7 +140,7 @@ class @Multimix
         return target[ key ] = value
       #-----------------------------------------------------------------------------------------------------
       deleteProperty: ( target, key ) =>
-        unless @delete
+        unless @deletion
           throw new E.Multimix_deletion_error '^mmx.proxy.set@1^', key
         return delete target[ key ]
     #.......................................................................................................

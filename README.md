@@ -67,7 +67,7 @@
   * `cfg.oneshot`: (default `false`) if set to `true`, trying to re-assign any value to an existing property
     will cause an error
 
-  * `cfg.delete`: (default `true`) if set to `false`, trying to delete any property will cause an error
+  * `cfg.deletion`: (default `true`) if set to `false`, trying to delete any property will cause an error
 
 
 ## To Do
@@ -78,7 +78,7 @@
 
 * **[+]** `cfg.strict`
 * **[+]** `cfg.oneshot`
-* **[+]** `cfg.delete`
+* **[+]** `cfg.deletion`
 
 
 
