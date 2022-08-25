@@ -57,7 +57,7 @@ get_types = ->
       create:     null
       strict:     false
       oneshot:    false
-      deletion:     true
+      deletion:   true
 
   #---------------------------------------------------------------------------------------------------------
   return types
