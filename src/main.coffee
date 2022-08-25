@@ -89,7 +89,7 @@ class @Multimix
     throw new E.Multimix_cfg_error '^mmx.ctor<@4^', "cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
     throw new E.Multimix_cfg_error '^mmx.ctor<@5^', "expected boolean"                     unless @types.isa.boolean cfg.oneshot
     #.......................................................................................................
-    Object.assign @, cfg
+    @[ key ] = cfg[ key ] for key of @types.isa.hdg_new_hedge_cfg.default
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
     if ( state = clasz.states.get @hub )? then  @state                        = state
