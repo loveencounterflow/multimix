@@ -22,7 +22,7 @@
   "author": "loveencounterflow",
   "license": "MIT",
   "dependencies": {
-    "guy": "^11.6.0",
+    "guy": "11.8.0",
     "intertype": "^10.1.0"
   }
 }

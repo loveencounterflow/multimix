@@ -1,11 +1,11 @@
 lockfileVersion: 5.4
 
 specifiers:
-  guy: ^11.6.0
+  guy: 11.8.0
   intertype: ^10.1.0
 
 dependencies:
-  guy: 11.6.0
+  guy: 11.8.0
   intertype: 10.1.0
 
 packages:
@@ -21,6 +21,18 @@ packages:
 
   /guy/11.6.0:
     resolution: {integrity: sha512-oh9KwRWTwwnZXvVqIS7HCdJfAHd1aLF50s//vkxc1ZbMXrh7RfmXuVzKKwgh04WAxPWwdqn63kx+icWwdX94RQ==}
+    peerDependencies:
+      acorn: ^8.7.1
+      acorn-loose: ^8.3.0
+      acorn-walk: ^8.2.0
+      astring: ^1.8.3
+    dependencies:
+      intertype-legacy: 7.7.1
+      letsfreezethat: 3.1.0
+    dev: false
+
+  /guy/11.8.0:
+    resolution: {integrity: sha512-jKsvKM8iT1BRJSxgsxlgRkTXPTCsK0TQog2Sc9r8XbGVRoMk2GZcnYtkGkFqZrVamecwcrZVA4jrehC9Q8NycQ==}
     peerDependencies:
       acorn: ^8.7.1
       acorn-loose: ^8.3.0
