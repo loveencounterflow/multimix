@@ -125,7 +125,8 @@ class @Multimix
         throw new E.Multimix_no_such_property '^mmx.proxy.get@1^', key if @strict
         return undefined if @create is false
         hedges  = [ @state.hedges..., ]
-        handler = if @create is true then @handler else @create key, target
+        if @create is true then handler = @handler
+        else @create key, target; return target[ key ]
         #...................................................................................................
         return target[ key ] = @_get_hedge_proxy false, nameit key, ( P... ) =>
           ### put code for tracing here ###
