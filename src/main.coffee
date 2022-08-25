@@ -115,8 +115,12 @@ class @Multimix
           ### NOTE necessitated by behavior of `node:util.inspect()`: ###
           when  '0'                 then return target[ 0                ]
         #...................................................................................................
-        if is_top then  @state.hedges = [ key, ]
-        else            @state.hedges.push key
+        if is_top
+          @state.hedges = [ key, ]
+          dsc.apply     = ( target, self, P ) => @handler.call self, [ key ], P...
+        else
+          @state.hedges.push key
+          dsc.apply     = ( target, self, P ) => @handler.call self, [ @state.hedges..., ], P...
         #...................................................................................................
         # @handler @state.hedges ### put call for prop access here ###
         return R if ( R = get target, key, nosuchvalue ) isnt nosuchvalue
