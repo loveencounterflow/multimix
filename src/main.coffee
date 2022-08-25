@@ -93,7 +93,7 @@ class @Multimix
     #.......................................................................................................
     ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
     if ( state = clasz.states.get @hub )? then  @state                        = state
-    else                                        clasz.states.set @hub, @state = { clasz.states..., }
+    else                                        clasz.states.set @hub, @state = { clasz.state..., }
     #.......................................................................................................
     R             = @_get_hedge_proxy true, @handler
     return R
