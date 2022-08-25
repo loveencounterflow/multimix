@@ -95,7 +95,11 @@ class @Multimix
     if ( state = clasz.states.get @hub )? then  @state                        = state
     else                                        clasz.states.set @hub, @state = { clasz.state..., }
     #.......................................................................................................
-    return @_get_proxy true, ( P... ) => @handler.call @hub, [], P...
+    R = @_get_proxy true, ( P... ) => @handler.call @hub, [], P...
+    for key, descriptor of Object.getOwnPropertyDescriptors @handler
+      continue if key is 'prototype'
+      Object.defineProperty R, key, descriptor
+    return R
 
   #---------------------------------------------------------------------------------------------------------
   _get_proxy: ( is_top, handler ) ->
