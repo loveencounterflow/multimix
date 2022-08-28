@@ -79,38 +79,41 @@ class @Multimix
     ### TAINT temporary code to avoid faulty `Intertype::validate` ###
     ### NOTE use `create` when `validate` is fixed ###
     ### TAINT circular dependency Intertype <--> GUY.props.Hedge ??? ###
-    hide @, 'types', get_types()
+    mmx         = @
+    hide mmx, 'types', get_types()
     cfg         = { cfg..., }
-    cfg.hub    ?= @
+    cfg.hub    ?= mmx
     cfg.create ?= not cfg.strict
-    cfg         = { @types.isa.hdg_new_hedge_cfg.default..., cfg..., }
-    clasz       = @constructor
-    throw new E.Multimix_cfg_error '^mmx.ctor<@1^', "need handler, got #{rpr cfg.handler}" unless @types.isa.function cfg.handler
-    throw new E.Multimix_cfg_error '^mmx.ctor<@2^', "expected boolean or function"         unless @types.isa.boolean.or.function cfg.create
-    throw new E.Multimix_cfg_error '^mmx.ctor<@3^', "expected boolean"                     unless @types.isa.boolean cfg.strict
-    throw new E.Multimix_cfg_error '^mmx.ctor<@4^', "cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
-    throw new E.Multimix_cfg_error '^mmx.ctor<@5^', "expected boolean"                     unless @types.isa.boolean cfg.oneshot
+    cfg         = { mmx.types.isa.hdg_new_hedge_cfg.default..., cfg..., }
+    clasz       = mmx.constructor
+    throw new E.Multimix_cfg_error '^mmx.ctor@1^', "need handler, got #{rpr cfg.handler}"                 unless mmx.types.isa.function cfg.handler
+    throw new E.Multimix_cfg_error '^mmx.ctor@2^', "expected boolean or function, got #{rpr cfg.create}"  unless mmx.types.isa.boolean.or.function cfg.create
+    throw new E.Multimix_cfg_error '^mmx.ctor@3^', "expected boolean, got #{rpr cfg.strict}"              unless mmx.types.isa.boolean cfg.strict
+    throw new E.Multimix_cfg_error '^mmx.ctor@4^', "cannot set both `create` and `strict`" if cfg.strict and ( cfg.create isnt false )
+    throw new E.Multimix_cfg_error '^mmx.ctor@5^', "expected boolean, got #{rpr cfg.oneshot}"             unless mmx.types.isa.boolean cfg.oneshot
     #.......................................................................................................
-    @[ key ] = cfg[ key ] for key of @types.isa.hdg_new_hedge_cfg.default
+    mmx[ key ] = cfg[ key ] for key of mmx.types.isa.hdg_new_hedge_cfg.default
     #.......................................................................................................
-    ### set `@state` to a value shared by all Multimix instances with the same `hub`: ###
-    if ( state = clasz.states.get @hub )? then  @state                        = state
-    else                                        clasz.states.set @hub, @state = { clasz.state..., }
+    ### set `mmx.state` to a value shared by all Multimix instances with the same `hub`: ###
+    ( mmx.state = clasz.states.get mmx.hub )
+    if mmx.state is undefined then ( clasz.states.set mmx.hub, mmx.state = ( structuredClone clasz.state ) )
     #.......................................................................................................
-    R = @_get_proxy true, ( P... ) => @handler.call @hub, [], P...
+    R = mmx._get_proxy true, mmx, ( P... ) => mmx.handler.call mmx.hub, [], P...
     for key, descriptor of Object.getOwnPropertyDescriptors @handler
+      continue if key is 'length'
       continue if key is 'prototype'
       Object.defineProperty R, key, descriptor
     return R
 
   #---------------------------------------------------------------------------------------------------------
-  _get_proxy: ( is_top, handler ) ->
+  _get_proxy: ( is_top, mmx, handler ) ->
     clasz = @constructor
     dsc   =
       #-----------------------------------------------------------------------------------------------------
       get: ( target, key ) =>
+        # debug '^43453^', { target, key, mmx_hub: mmx.hub, }
         switch key
-          when  multimix_symbol     then return @
+          when  multimix_symbol     then return mmx
           when  stringtag_symbol    then return "#{target.constructor.name}"
           when  'constructor'       then return target.constructor
           when  'toString'          then return target.toString
@@ -133,9 +136,9 @@ class @Multimix
         if @create is true then handler = @handler
         else @create key, target; return target[ key ]
         #...................................................................................................
-        proxy = @_get_proxy false, nameit key, ( P... ) =>
+        proxy = @_get_proxy false, mmx, nameit key, ( P... ) =>
           ### put code for tracing here ###
-          R = handler.call @hub, hedges, P...
+          R = handler.call mmx.hub, hedges, P...
           @state.hedges = []
           return R
         if @hide then ( hide target, key, proxy ) else target[ key ] = proxy
