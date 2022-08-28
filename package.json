@@ -1,6 +1,6 @@
 {
   "name": "multimix",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "description": "Objects with auto-generated property chains",
   "main": "lib/main.js",
   "scripts": {
