@@ -77,6 +77,8 @@
 ## To Do
 
 * **[–]** documentation
+* **[–]** explore use for purposes other than InterType, such as replacing `SetMouseDelay '42ms'` with
+  `set.mouse.delay ms: 42`
 
 ## Is Done
 
